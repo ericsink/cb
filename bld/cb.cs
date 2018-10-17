@@ -1021,7 +1021,7 @@ public static class cb
     {
 		var tomcrypt_src_dir = "..\\..\\libtomcrypt\\src";
 		var tomcrypt_include_dir = "..\\..\\libtomcrypt\\src\\headers";
-        var sqlcipher_dir = "..\\sqlcipher_new";
+        var sqlcipher_dir = "..\\sqlcipher";
         var tomcrypt_cfiles = new string[]
 		{
 "modes\\cbc\\cbc_decrypt.c",
@@ -1670,7 +1670,7 @@ public static class cb
 
 	static void write_sqlcipher_apple_cc()
 	{
-		var sqlcipher_dir = "..\\sqlcipher_new";
+		var sqlcipher_dir = "..\\sqlcipher";
 
 		var cfiles = new List<string>();
 		cfiles.Add(Path.Combine(sqlcipher_dir, "sqlite3.c"));
