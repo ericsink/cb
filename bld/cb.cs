@@ -441,7 +441,7 @@ public static class cb
 					tw.Write(" {0}\n", s);
 				}
 			}
-			tw.Write("libtool -static -o ./bin/{0}/ios/e_sqlite3.a -filelist {1}\n", libname, dest_filelist);
+			tw.Write("libtool -static -o ./bin/{0}/ios/{0}.a -filelist {1}\n", libname, dest_filelist);
 		}
 	}
 
