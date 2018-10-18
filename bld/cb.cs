@@ -191,12 +191,21 @@ public static class cb
 		{
 			switch (t.target)
 			{
-				case "arm64":
+				case "arm64-v8a":
 					compiler = "/Users/eric/android_toolchains/arm64/bin/aarch64-linux-android-gcc";
 					break;
 
-				case "arm":
+				case "armeabi":
 					compiler = "/Users/eric/android_toolchains/arm/bin/arm-linux-androideabi-gcc";
+					tw.Write(" -march=armv5te\n");
+					tw.Write(" -mthumb\n");
+					tw.Write(" -msoft-float\n");
+					break;
+
+				case "armeabi-v7a":
+					compiler = "/Users/eric/android_toolchains/arm/bin/arm-linux-androideabi-gcc";
+					tw.Write(" -march=armv7-a\n");
+					tw.Write(" -mthumb\n");
 					break;
 
 				case "x86":
@@ -963,8 +972,9 @@ public static class cb
 
 			var targets = new android_target[]
 			{
-				new android_target("arm"),
-				new android_target("arm64"),
+				new android_target("armeabi"),
+				new android_target("armeabi-v7a"),
+				new android_target("arm64-v8a"),
 				new android_target("x86"),
 				new android_target("x86_64"),
 			};
@@ -1605,8 +1615,9 @@ public static class cb
 
 			var targets = new android_target[]
 			{
-				new android_target("arm"),
-				new android_target("arm64"),
+				new android_target("armeabi"),
+				new android_target("armeabi-v7a"),
+				new android_target("arm64-v8a"),
 				new android_target("x86"),
 				new android_target("x86_64"),
 			};
