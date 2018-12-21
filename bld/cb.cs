@@ -174,6 +174,61 @@ public static class cb
         }
     }
 
+    static void write_android_ndk_build(
+        string libname,
+        IList<android_target> targets,
+        IList<string> cfiles,
+        Dictionary<string,string> defines,
+        IList<string> includes,
+        IList<string> libs
+        )
+    {
+	var dest_dir = string.Format("android_{0}", libname);
+	Directory.CreateDirectory(dest_dir);
+	var dest_dir_jni = Path.Combine(dest_dir, "jni");
+	Directory.CreateDirectory(dest_dir_jni);
+	var dest_android_mk = Path.Combine(dest_dir_jni, "Android.mk");
+	using (TextWriter tw = new StreamWriter(dest_android_mk))
+	{
+		var defs = defines
+			.Select(p => (p.Value == null) ? string.Format("-D{0}", p.Key) : string.Format("-D{0}={1}", p.Key, p.Value))
+			.ToArray();
+		var src = cfiles
+			.Select(x => Path.Combine("..", "..", x))
+			.Select(x => x.Replace("\\", "/"))
+			.ToArray();
+		var inc = includes
+			.Select(x => Path.Combine("..", "..", x))
+			.Select(x => x.Replace("\\", "/"))
+			.Select(x => string.Format("$(LOCAL_PATH)/{0}", x))
+			.ToArray();
+		tw.Write("LOCAL_PATH := $(call my-dir)\n");
+		tw.Write("include $(CLEAR_VARS)\n");
+		tw.Write("LOCAL_MODULE := lib{0}\n", libname);
+		tw.Write("LOCAL_MODULE_FILENAME := lib{0}\n", libname);
+		tw.Write("LOCAL_CFLAGS := -O {0}\n", string.Join(" ", defs));
+		if (includes.Count > 0)
+		{
+			tw.Write("LOCAL_C_INCLUDES := {0}\n", string.Join(" ", inc));
+		}
+		tw.Write("LOCAL_SRC_FILES = {0}\n", string.Join(" ", src));
+		tw.Write("include $(BUILD_SHARED_LIBRARY)\n");
+	}
+	var dest_application_mk = Path.Combine(dest_dir_jni, "Application.mk");
+	using (TextWriter tw = new StreamWriter(dest_application_mk))
+	{
+		var targs = targets
+			.Select(x => x.target)
+			.ToArray();
+		tw.Write("APP_ABI := {0}\n", string.Join(" ", targs));
+	}
+	var dest_project_properties = Path.Combine(dest_dir, "project.properties");
+	using (TextWriter tw = new StreamWriter(dest_project_properties))
+	{
+		tw.Write("target=android-14\n");
+	}
+    }
+
     static void write_android(
         string libname,
 		android_target t,
@@ -979,6 +1034,16 @@ public static class cb
 				new android_target("x86_64"),
 			};
 
+#if true
+			write_android_ndk_build(
+				"e_sqlite3",
+				targets,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+#else
 			write_android_multi(
 				"e_sqlite3",
 				targets,
@@ -987,6 +1052,7 @@ public static class cb
 				includes,
 				libs
 				);
+#endif
 		}
 
 		{
@@ -1613,6 +1679,7 @@ public static class cb
 				//"bcrypt.lib",
 			};
 
+
 			var targets = new android_target[]
 			{
 				new android_target("armeabi"),
@@ -1622,6 +1689,16 @@ public static class cb
 				new android_target("x86_64"),
 			};
 
+#if true
+			write_android_ndk_build(
+				"sqlcipher",
+				targets,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+#else
 			write_android_multi(
 				"sqlcipher",
 				targets,
@@ -1630,6 +1707,7 @@ public static class cb
 				includes,
 				libs
 				);
+#endif
 		}
 
 		{
