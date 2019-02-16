@@ -672,7 +672,7 @@ public static class cb
                 tw.Write(" /Zc:inline");
                 tw.Write(" /Zc:forScope");
                 tw.Write(" /Fo\".\\obj\\%SUBDIR%\\\\\"");
-                tw.Write(" /Gd");
+                tw.Write(" /Gd"); // Cdecl
                 tw.Write(" /TC");
                 tw.Write(" /analyze-");
                 foreach (var p in includes)
