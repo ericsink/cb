@@ -434,14 +434,17 @@ public static class cb
         )
 	{
         var dest_sh = string.Format("ios_{0}.sh", libname);
-		var arches = new string[] {
+		var arches_simulator = new string[] {
 			"i386",
 			"x86_64",
+		};
+		var arches_device = new string[] {
 			"arm64",
 			"armv7",
 			"armv7s",
 		};
-        var dest_filelist = string.Format("ios_{0}.libtoolfiles", libname);
+		var arches = arches_simulator.Concat(arches_device).ToArray();
+		var dest_filelist = string.Format("ios_{0}.libtoolfiles", libname);
 		using (TextWriter tw = new StreamWriter(dest_filelist))
 		{
 			foreach (var arch in arches)
@@ -456,7 +459,7 @@ public static class cb
 			}
 		}
 		using (TextWriter tw = new StreamWriter(dest_sh))
-        {
+		{
 			tw.Write("#!/bin/sh\n");
 			tw.Write("set -e\n");
 			tw.Write("set -x\n");
@@ -505,7 +508,14 @@ public static class cb
 					tw.Write(" {0}\n", s);
 				}
 			}
-			tw.Write("libtool -static -o ./bin/{0}/ios/{0}.a -filelist {1}\n", libname, dest_filelist);
+			var path_static = $"./bin/{libname}/ios/{libname}.a";
+			tw.Write($"libtool -static -o {path_static} -filelist {dest_filelist}\n");
+
+			tw.Write("mkdir -p \"./bin/{0}/ios/device\"\n", libname);
+			tw.Write($"xcrun --sdk iphoneos clang {string.Join(" ", arches_device.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/ios/device/lib{libname}.dylib {path_static}\n");
+
+			tw.Write("mkdir -p \"./bin/{0}/ios/simulator\"\n", libname);
+			tw.Write($"xcrun --sdk iphonesimulator clang {string.Join(" ", arches_simulator.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/ios/simulator/lib{libname}.dylib {path_static}\n");
 		}
 	}
 
