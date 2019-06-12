@@ -938,6 +938,10 @@ public static class cb
         {
             "..\\sqlite3\\sqlite3.c",
         };
+        var stubs = new string[]
+        {
+	    "..\\stubs\\stubs.c",
+	};
 
 		{
 			var trios = new win_target[]
@@ -1094,7 +1098,7 @@ public static class cb
 
 			write_ios(
 				"e_sqlite3",
-				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				cfiles.Concat(stubs).Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
 				includes.Select(x => x.Replace("\\", "/")).ToArray(),
 				libs
