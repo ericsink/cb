@@ -339,7 +339,6 @@ public static class cb
 			tw.Write(" clang");
 			tw.Write(" -dynamiclib");
 			tw.Write(" -O");
-			tw.Write(" -arch i386");
 			tw.Write(" -arch x86_64");
 			foreach (var d in defines.Keys.OrderBy(q => q))
 			{
@@ -359,6 +358,7 @@ public static class cb
 			{
 				tw.Write(" {0}", s);
 			}
+			tw.Write(" -lc");
 			tw.Write(" \n");
 		}
 	}
@@ -373,7 +373,6 @@ public static class cb
 	{
         var dest_sh = string.Format("mac_static_{0}.sh", libname);
 		var arches = new string[] {
-			"i386",
 			"x86_64",
 		};
         var dest_filelist = string.Format("mac_{0}.libtoolfiles", libname);
