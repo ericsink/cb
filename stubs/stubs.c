@@ -15,8 +15,3 @@ int sqlite3_rekey(
     return 1; // SQLITE_ERROR
 }
 
-int sqlite3_win32_set_directory8(unsigned long type, const char *zValue)
-{
-    return 1; // SQLITE_ERROR
-}
-
