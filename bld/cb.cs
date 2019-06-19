@@ -1122,7 +1122,7 @@ public static class cb
 
     }
 
-    static void write_sqlcipher()
+    static void write_e_sqlcipher()
     {
 		var tomcrypt_src_dir = "..\\..\\libtomcrypt\\src";
 		var tomcrypt_include_dir = "..\\..\\libtomcrypt\\src\\headers";
@@ -1647,7 +1647,7 @@ public static class cb
 			};
 
 			write_win_multi(
-				"sqlcipher",
+				"e_sqlcipher",
 				trios,
 				cfiles,
 				defines,
@@ -1688,7 +1688,7 @@ public static class cb
 			};
 
 			write_linux_multi(
-				"sqlcipher",
+				"e_sqlcipher",
 				targets,
 				cfiles,
 				defines,
@@ -1730,7 +1730,7 @@ public static class cb
 
 #if true
 			write_android_ndk_build(
-				"sqlcipher",
+				"e_sqlcipher",
 				targets,
 				cfiles,
 				defines,
@@ -1739,7 +1739,7 @@ public static class cb
 				);
 #else
 			write_android_multi(
-				"sqlcipher",
+				"e_sqlcipher",
 				targets,
 				cfiles,
 				defines,
@@ -1771,7 +1771,7 @@ public static class cb
 			};
 
 			write_ios(
-				"sqlcipher",
+				"e_sqlcipher",
 				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
 				includes.Select(x => x.Replace("\\", "/")).ToArray(),
@@ -1779,7 +1779,7 @@ public static class cb
 				);
 
 			write_mac_dynamic(
-				"sqlcipher",
+				"e_sqlcipher",
 				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
 				includes.Select(x => x.Replace("\\", "/")).ToArray(),
@@ -1787,7 +1787,7 @@ public static class cb
 				);
 
 			write_mac_static(
-				"sqlcipher",
+				"e_sqlcipher",
 				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
 				includes.Select(x => x.Replace("\\", "/")).ToArray(),
@@ -1820,7 +1820,7 @@ public static class cb
 		};
 
 		write_ios(
-			"sqlcipher",
+			"e_sqlcipher",
 			cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 			defines,
 			includes,
@@ -1828,7 +1828,7 @@ public static class cb
 			);
 
 		write_mac_dynamic(
-			"sqlcipher",
+			"e_sqlcipher",
 			cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 			defines,
 			includes,
@@ -1836,7 +1836,7 @@ public static class cb
 			);
 
 		write_mac_static(
-			"sqlcipher",
+			"e_sqlcipher",
 			cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 			defines,
 			includes,
@@ -1847,7 +1847,7 @@ public static class cb
     public static void Main()
     {
         write_e_sqlite3();
-        write_sqlcipher();
+        write_e_sqlcipher();
         //write_sqlcipher_apple_cc();
     }
 }
