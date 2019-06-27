@@ -571,6 +571,7 @@ public static class cb
             tw.Write(" /OPT:REF");
             tw.Write(" /OPT:ICF");
             tw.Write(" /TLBID:1");
+            tw.Write(" /GUARD:CF");
             tw.Write(" /WINMD:NO");
             tw.Write(" /DYNAMICBASE");
             tw.Write(" /NXCOMPAT");
@@ -636,6 +637,7 @@ public static class cb
                 tw.Write(" /nologo");
                 tw.Write(" /c");
                 //tw.Write(" /Zi");
+                tw.Write(" /GUARD:CF");
                 tw.Write(" /W1");
                 tw.Write(" /WX-");
                 tw.Write(" /sdl-");
