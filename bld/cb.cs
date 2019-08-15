@@ -12,6 +12,7 @@ public static class cb
         v120,
         v140,
         v141,
+        v142,
     }
 
     enum Machine
@@ -68,23 +69,46 @@ public static class cb
                 return "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat";
 			case VCVersion.v141:
 				return "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat";
+			case VCVersion.v142:
+				return "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat";
             default:
                 throw new NotImplementedException();
         }
     }
 
-    static string get_toolchain(Machine m)
+    static string get_toolchain(VCVersion v, Machine m)
     {
-        switch (m)
+        switch (v)
         {
-            case Machine.x86:
-                return "x86";
-            case Machine.x64:
-                return "x86_amd64";
-            case Machine.arm:
-                return "x86_arm";
-            case Machine.arm64:
-                return "x86_arm64";
+            case VCVersion.v110:
+            case VCVersion.v120:
+            case VCVersion.v140:
+                switch (m)
+                {
+                    case Machine.x86:
+                        return "x86";
+                    case Machine.x64:
+                        return "x86_amd64";
+                    case Machine.arm:
+                        return "x86_arm";
+                    default:
+                        throw new NotImplementedException();
+                }
+			case VCVersion.v141:
+			case VCVersion.v142:
+                switch (m)
+                {
+                    case Machine.x86:
+                        return "x86";
+                    case Machine.x64:
+                        return "x64";
+                    case Machine.arm:
+                        return "x64_arm";
+                    case Machine.arm64:
+                        return "x64_arm64";
+                    default:
+                        throw new NotImplementedException();
+                }
             default:
                 throw new NotImplementedException();
         }
@@ -538,7 +562,7 @@ public static class cb
         var machine = t.m;
 
         var vcvarsbat = get_vcvarsbat(vcversion, flavor);
-        var toolchain = get_toolchain(machine);
+        var toolchain = get_toolchain(vcversion, machine);
         var crt_option = get_crt_option(vcversion, flavor);
         var subdir = t.subdir(libname);
         var dest_bat = t.bat(libname);
@@ -571,7 +595,7 @@ public static class cb
             tw.Write(" /OPT:REF");
             tw.Write(" /OPT:ICF");
             tw.Write(" /TLBID:1");
-            tw.Write(" /GUARD:CF");
+            tw.Write(" /guard:cf");
             tw.Write(" /WINMD:NO");
             tw.Write(" /DYNAMICBASE");
             tw.Write(" /NXCOMPAT");
@@ -598,7 +622,15 @@ public static class cb
             {
                 tw.Write(" /MANIFEST /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" /manifest:embed");
             }
-		    if ((flavor == Flavor.appcontainer) && (vcversion == VCVersion.v140))
+		    if (
+                (flavor == Flavor.appcontainer) 
+                && 
+                (
+                    (vcversion == VCVersion.v140)
+                    || (vcversion == VCVersion.v141)
+                    || (vcversion == VCVersion.v142)
+                    )
+                )
             {
                 tw.Write(" WindowsApp.lib");
             }
@@ -620,7 +652,15 @@ public static class cb
             tw.WriteLine("SET VCVARSBAT=\"{0}\"", vcvarsbat);
             tw.WriteLine("SET TOOLCHAIN={0}", toolchain);
             tw.WriteLine("SET SUBDIR={0}", subdir);
-		    if ((flavor == Flavor.appcontainer) && (vcversion == VCVersion.v140))
+		    if (
+                (flavor == Flavor.appcontainer) 
+                && 
+                (
+                    (vcversion == VCVersion.v140) 
+                    || (vcversion == VCVersion.v141)
+                    || (vcversion == VCVersion.v142)
+                    )
+                )
 		    {
 				tw.WriteLine("call %VCVARSBAT% %TOOLCHAIN% store");
 		    }
@@ -637,7 +677,7 @@ public static class cb
                 tw.Write(" /nologo");
                 tw.Write(" /c");
                 //tw.Write(" /Zi");
-                tw.Write(" /GUARD:CF");
+                tw.Write(" /guard:cf");
                 tw.Write(" /W1");
                 tw.Write(" /WX-");
                 tw.Write(" /sdl-");
@@ -938,15 +978,13 @@ public static class cb
         var cfiles = new string[]
         {
             "..\\sqlite3\\sqlite3.c",
+            "..\\stubs\\stubs.c",
         };
-        var stubs = new string[]
-        {
-	    "..\\stubs\\stubs.c",
-	};
 
 		{
 			var trios = new win_target[]
 			{
+#if not
 				new win_target(VCVersion.v110, Flavor.wp80, Machine.x86),
 				new win_target(VCVersion.v110, Flavor.wp80, Machine.arm),
 
@@ -982,6 +1020,7 @@ public static class cb
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x86),
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x64),
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.arm),
+#endif
 
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x86),
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x64),
@@ -993,6 +1032,17 @@ public static class cb
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm),
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm64),
 
+#if not
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm64),
+
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm64),
+#endif
 			};
 
 			var defines = new Dictionary<string,string>();
@@ -1099,7 +1149,7 @@ public static class cb
 
 			write_ios(
 				"e_sqlite3",
-				cfiles.Concat(stubs).Select(x => x.Replace("\\", "/")).ToArray(),
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
 				includes.Select(x => x.Replace("\\", "/")).ToArray(),
 				libs
@@ -1626,7 +1676,6 @@ public static class cb
 				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.x86),
 				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.x64),
 				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.arm),
-#endif
 
 				new win_target(VCVersion.v140, Flavor.plain, Machine.x86),
 				new win_target(VCVersion.v140, Flavor.plain, Machine.x64),
@@ -1635,6 +1684,7 @@ public static class cb
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x86),
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x64),
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.arm),
+#endif
 
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x86),
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x64),
@@ -1646,6 +1696,17 @@ public static class cb
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm),
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm64),
 
+#if not
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm64),
+
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm64),
+#endif
 			};
 
 			write_win_multi(
