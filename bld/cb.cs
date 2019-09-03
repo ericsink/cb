@@ -430,6 +430,99 @@ public static class cb
 		}
 	}
 
+    static void write_tvos(
+        string libname,
+        IList<string> cfiles,
+        Dictionary<string,string> defines,
+        IList<string> includes,
+        IList<string> libs
+        )
+	{
+        var dest_sh = string.Format("tvos_{0}.sh", libname);
+		var arches_simulator = new string[] {
+			"i386",
+			"x86_64",
+		};
+		var arches_device = new string[] {
+			"arm64",
+			"armv7",
+			"armv7s",
+		};
+		var arches = arches_simulator.Concat(arches_device).ToArray();
+		var dest_filelist = string.Format("tvos_{0}.libtoolfiles", libname);
+		using (TextWriter tw = new StreamWriter(dest_filelist))
+		{
+			foreach (var arch in arches)
+			{
+				var subdir = string.Format("{0}/tvos/{1}", libname, arch);
+				foreach (var s in cfiles)
+				{
+                var b = Path.GetFileNameWithoutExtension(s);
+					var o = string.Format("./obj/{0}/{1}.o", subdir, b);
+					tw.Write("{0}\n", o);
+				}
+			}
+		}
+		using (TextWriter tw = new StreamWriter(dest_sh))
+		{
+			tw.Write("#!/bin/sh\n");
+			tw.Write("set -e\n");
+			tw.Write("set -x\n");
+		    tw.Write("mkdir -p \"./bin/{0}/tvos\"\n", libname);
+			foreach (var arch in arches)
+			{
+				var subdir = string.Format("{0}/tvos/{1}", libname, arch);
+				tw.Write("mkdir -p \"./obj/{0}\"\n", subdir);
+				    foreach (var s in cfiles)
+				{
+					tw.Write("xcrun");
+					switch (arch)
+					{
+						case "i386":
+						case "x86_64":
+							tw.Write(" --sdk appletvsimulator");
+							break;
+						case "arm64":
+						case "armv7":
+						case "armv7s":
+							tw.Write(" --sdk appletvos");
+							break;
+						default:
+							throw new NotImplementedException();
+					}
+					tw.Write(" clang");
+					tw.Write(" -O");
+					tw.Write(" -arch {0}", arch);
+					foreach (var d in defines.Keys.OrderBy(q => q))
+					{
+						var v = defines[d];
+						tw.Write(" -D{0}", d);
+						if (v != null)
+						{
+							tw.Write("={0}", v);
+						}
+					}
+					foreach (var p in includes)
+					{
+						tw.Write(" -I{0}", p);
+					}
+					tw.Write(" -c");
+                var b = Path.GetFileNameWithoutExtension(s);
+					tw.Write(" -o ./obj/{0}/{1}.o", subdir, b);
+					tw.Write(" {0}\n", s);
+				}
+			}
+			var path_static = $"./bin/{libname}/tvos/{libname}.a";
+			tw.Write($"libtool -static -o {path_static} -filelist {dest_filelist}\n");
+
+			tw.Write("mkdir -p \"./bin/{0}/tvos/device\"\n", libname);
+			tw.Write($"xcrun --sdk iphoneos clang {string.Join(" ", arches_device.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/device/lib{libname}.dylib {path_static}\n");
+
+			tw.Write("mkdir -p \"./bin/{0}/tvos/simulator\"\n", libname);
+			tw.Write($"xcrun --sdk iphonesimulator clang {string.Join(" ", arches_simulator.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/simulator/lib{libname}.dylib {path_static}\n");
+		}
+	}
+
     static void write_ios(
         string libname,
         IList<string> cfiles,
@@ -1096,6 +1189,14 @@ public static class cb
 			};
 
 			write_ios(
+				"e_sqlite3",
+				cfiles.Concat(stubs).Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_tvos(
 				"e_sqlite3",
 				cfiles.Concat(stubs).Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
