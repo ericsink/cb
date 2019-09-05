@@ -1250,7 +1250,7 @@ public static class cb
 
 			write_tvos(
 				"e_sqlite3",
-				cfiles.Concat(stubs).Select(x => x.Replace("\\", "/")).ToArray(),
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
 				includes.Select(x => x.Replace("\\", "/")).ToArray(),
 				libs
