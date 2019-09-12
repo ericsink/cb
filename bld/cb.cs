@@ -464,13 +464,13 @@ public static class cb
 	{
         var dest_sh = string.Format("tvos_{0}.sh", libname);
 		var arches_simulator = new string[] {
-			"i386",
+			//"i386",
 			"x86_64",
 		};
 		var arches_device = new string[] {
 			"arm64",
 			"armv7",
-			"armv7s",
+			//"armv7s",
 		};
 		var arches = arches_simulator.Concat(arches_device).ToArray();
 		var dest_filelist = string.Format("tvos_{0}.libtoolfiles", libname);
@@ -517,6 +517,7 @@ public static class cb
 					tw.Write(" clang");
 					tw.Write(" -O");
 					tw.Write(" -arch {0}", arch);
+					tw.Write(" -fembed-bitcode");
 					foreach (var d in defines.Keys.OrderBy(q => q))
 					{
 						var v = defines[d];
