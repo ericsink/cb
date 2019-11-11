@@ -686,6 +686,7 @@ public static class cb
             {
                 tw.Write(" /SUBSYSTEM:CONSOLE");
             }
+            tw.Write(" /DEBUG:FULL");
             tw.Write(" /OPT:REF");
             tw.Write(" /OPT:ICF");
             tw.Write(" /TLBID:1");
@@ -813,6 +814,7 @@ public static class cb
                 tw.Write(" /D NDEBUG");
                 tw.Write(" /D _USRDLL");
                 tw.Write(" /D _WINDLL");
+                tw.Write(" /DEBUG:FULL");
                 tw.Write(" /Gm-");
                 tw.Write(" /EHsc");
                 tw.Write(" {0}", crt_option);
