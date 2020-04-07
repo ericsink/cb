@@ -687,6 +687,8 @@ public static class cb
                 tw.Write(" /SUBSYSTEM:CONSOLE");
             }
             tw.Write(" /DEBUG:FULL");
+            tw.Write(" /DEBUGTYPE:CV,FIXUP");
+            tw.Write(" /INCREMENTAL:NO");
             tw.Write(" /OPT:REF");
             tw.Write(" /OPT:ICF");
             tw.Write(" /TLBID:1");
