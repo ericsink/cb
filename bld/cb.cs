@@ -70,7 +70,7 @@ public static class cb
 			case VCVersion.v141:
 				return "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat";
 			case VCVersion.v142:
-				return "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat";
+				return "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build\\vcvarsall.bat";
             default:
                 throw new NotImplementedException();
         }
@@ -1120,6 +1120,7 @@ public static class cb
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.arm),
 #endif
 
+#if not
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x86),
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x64),
 				new win_target(VCVersion.v141, Flavor.plain, Machine.arm),
@@ -1129,8 +1130,8 @@ public static class cb
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.x64),
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm),
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm64),
+#endif
 
-#if not
 				new win_target(VCVersion.v142, Flavor.plain, Machine.x86),
 				new win_target(VCVersion.v142, Flavor.plain, Machine.x64),
 				new win_target(VCVersion.v142, Flavor.plain, Machine.arm),
@@ -1140,7 +1141,6 @@ public static class cb
 				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x64),
 				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm),
 				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm64),
-#endif
 			};
 
 			var defines = new Dictionary<string,string>();
