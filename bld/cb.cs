@@ -20,7 +20,8 @@ public static class cb
         x86,
         x64,
         arm,
-		arm64,
+    	arm64,
+        mips64,
     }
 
     enum Flavor
@@ -106,6 +107,8 @@ public static class cb
                         return "x64_arm";
                     case Machine.arm64:
                         return "x64_arm64";
+                    case Machine.mips64:
+                        return "x64_mips64";
                     default:
                         throw new NotImplementedException();
                 }
@@ -147,6 +150,10 @@ public static class cb
 
 				case "arm64":
 					compiler = "aarch64-linux-gnu-gcc";
+					break;
+
+				case "mips64":
+					compiler = "mips64el-linux-gnuabi64-gcc";
 					break;
 
 				case "armhf":
@@ -1181,6 +1188,7 @@ public static class cb
 				new linux_target("arm64"),
 				new linux_target("armhf"),
 				new linux_target("armsf"),
+				new linux_target("mips64"),
 			};
 
 			write_linux_multi(
@@ -1854,6 +1862,7 @@ public static class cb
 				new linux_target("arm64"),
 				new linux_target("armhf"),
 				new linux_target("armsf"),
+				new linux_target("mips64"),
 			};
 
 			write_linux_multi(
