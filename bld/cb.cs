@@ -1,5 +1,6 @@
 
 using System;
+using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -359,38 +360,49 @@ public static class cb
         )
 	{
         var dest_sh = string.Format("mac_dynamic_{0}.sh", libname);
+		var arches = new string[] {
+			"x86_64",
+			"arm64"
+		};
+		StringBuilder archLibraries = new StringBuilder();
 		using (TextWriter tw = new StreamWriter(dest_sh))
         {
 			tw.Write("#!/bin/sh\n");
 			tw.Write("set -e\n");
 			tw.Write("set -x\n");
-		    tw.Write("mkdir -p \"./bin/{0}/mac\"\n", libname);
-			tw.Write("xcrun");
-			tw.Write(" --sdk macosx");
-			tw.Write(" clang");
-			tw.Write(" -dynamiclib");
-			tw.Write(" -O");
-			tw.Write(" -arch x86_64");
-			foreach (var d in defines.Keys.OrderBy(q => q))
+			foreach (string arch in arches)
 			{
-				var v = defines[d];
-				tw.Write(" -D{0}", d);
-				if (v != null)
+				tw.Write("mkdir -p \"./bin/{0}/mac/{1}\"\n", libname, arch);
+				tw.Write("xcrun");
+				tw.Write(" --sdk macosx");
+				tw.Write(" clang");
+				tw.Write(" -dynamiclib");
+				tw.Write(" -O");
+				tw.Write(" -arch {0}", arch);
+				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
-					tw.Write("={0}", v);
+					var v = defines[d];
+					tw.Write(" -D{0}", d);
+					if (v != null)
+					{
+						tw.Write("={0}", v);
+					}
 				}
+				foreach (var p in includes)
+				{
+					tw.Write(" -I{0}", p);
+				}
+				tw.Write(" -o ./bin/{0}/mac/{1}/lib{0}.dylib", libname, arch);
+				foreach (var s in cfiles)
+				{
+					tw.Write(" {0}", s);
+				}
+				tw.Write(" -lc");
+				tw.Write(" \n");
+				archLibraries.AppendFormat("./bin/{0}/mac/{1}/lib{0}.dylib ", libname, arch);
 			}
-			foreach (var p in includes)
-			{
-				tw.Write(" -I{0}", p);
-			}
-			tw.Write(" -o ./bin/{0}/mac/lib{0}.dylib", libname);
-			foreach (var s in cfiles)
-			{
-				tw.Write(" {0}", s);
-			}
-			tw.Write(" -lc");
-			tw.Write(" \n");
+			// Create a universal binary from each of the architectures
+			tw.Write("lipo {1} -create -output ./bin/{0}/mac/lib{0}.dylib\n", libname, archLibraries);
 		}
 	}
 
@@ -405,11 +417,13 @@ public static class cb
         var dest_sh = string.Format("mac_static_{0}.sh", libname);
 		var arches = new string[] {
 			"x86_64",
+			"arm64"
 		};
-        var dest_filelist = string.Format("mac_{0}.libtoolfiles", libname);
-		using (TextWriter tw = new StreamWriter(dest_filelist))
+		StringBuilder archLibraries = new StringBuilder();
+		foreach (var arch in arches)
 		{
-			foreach (var arch in arches)
+			var dest_filelist = string.Format("mac_{0}_{1}.libtoolfiles", libname, arch);
+			using (TextWriter tw = new StreamWriter(dest_filelist))
 			{
 				var subdir = string.Format("{0}/mac/{1}", libname, arch);
 				foreach (var s in cfiles)
@@ -425,7 +439,6 @@ public static class cb
 			tw.Write("#!/bin/sh\n");
 			tw.Write("set -e\n");
 			tw.Write("set -x\n");
-		    tw.Write("mkdir -p \"./bin/{0}/mac\"\n", libname);
 			foreach (var arch in arches)
 			{
 				var subdir = string.Format("{0}/mac/{1}", libname, arch);
@@ -455,9 +468,11 @@ public static class cb
 					tw.Write(" -o ./obj/{0}/{1}.o", subdir, b);
 					tw.Write(" {0}\n", s);
 				}
+				tw.Write("libtool -static -o ./bin/{0}/mac/{1}/{0}.a -filelist mac_{0}_{1}.libtoolfiles\n", libname, arch);
+				archLibraries.AppendFormat("./bin/{0}/mac/{1}/{0}.a ", libname, arch);
 			}
-			tw.Write("libtool -static -o ./bin/{0}/mac/{0}.a -filelist {1}\n", libname, dest_filelist);
-			//tw.Write("libtool -dynamic -o ./bin/{0}/mac/lib{0}.dylib -filelist {1}\n", libname, dest_filelist);
+			// Create a universal binary from each of the architectures
+			tw.Write("lipo {1} -create -output ./bin/{0}/mac/{0}.a\n", libname, archLibraries);
 		}
 	}
 
