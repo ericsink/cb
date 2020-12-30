@@ -1245,7 +1245,7 @@ public static class cb
 
 			var targets = new android_target[]
 			{
-				new android_target("armeabi"),
+				//new android_target("armeabi"),
 				new android_target("armeabi-v7a"),
 				new android_target("arm64-v8a"),
 				new android_target("x86"),
@@ -1944,7 +1944,7 @@ public static class cb
 
 			var targets = new android_target[]
 			{
-				new android_target("armeabi"),
+				//new android_target("armeabi"),
 				new android_target("armeabi-v7a"),
 				new android_target("arm64-v8a"),
 				new android_target("x86"),
