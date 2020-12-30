@@ -995,6 +995,7 @@ public static class cb
 
     static void write_linux_multi(
         string libname,
+        string grp,
         IList<linux_target> targets,
         IList<string> cfiles,
         Dictionary<string,string> defines,
@@ -1014,7 +1015,7 @@ public static class cb
                 );
         }
 
-		using (TextWriter tw = new StreamWriter(string.Format("linux_{0}.sh", libname)))
+		using (TextWriter tw = new StreamWriter(string.Format("linux_{0}_{1}.sh", libname, grp)))
         {
 			tw.Write("#!/bin/sh\n");
 			tw.Write("set -e\n");
@@ -1195,10 +1196,14 @@ public static class cb
 			{
 			};
 
-			var targets = new linux_target[]
+			var targets_regular = new linux_target[]
 			{
 				new linux_target("x64"),
 				new linux_target("x86"),
+			};
+
+			var targets_cross = new linux_target[]
+			{
 				new linux_target("musl-x64"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
@@ -1208,7 +1213,18 @@ public static class cb
 
 			write_linux_multi(
 				"e_sqlite3",
-				targets,
+                "regular",
+				targets_regular,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+
+			write_linux_multi(
+				"e_sqlite3",
+                "cross",
+				targets_cross,
 				cfiles,
 				defines,
 				includes,
@@ -1815,6 +1831,7 @@ public static class cb
 				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.arm),
 #endif
 
+#if not
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x86),
 				new win_target(VCVersion.v141, Flavor.plain, Machine.x64),
 				new win_target(VCVersion.v141, Flavor.plain, Machine.arm),
@@ -1824,8 +1841,8 @@ public static class cb
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.x64),
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm),
 				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm64),
+#endif
 
-#if not
 				new win_target(VCVersion.v142, Flavor.plain, Machine.x86),
 				new win_target(VCVersion.v142, Flavor.plain, Machine.x64),
 				new win_target(VCVersion.v142, Flavor.plain, Machine.arm),
@@ -1835,7 +1852,6 @@ public static class cb
 				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x64),
 				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm),
 				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm64),
-#endif
 			};
 
 			write_win_multi(
@@ -1869,10 +1885,14 @@ public static class cb
 				//"bcrypt.lib",
 			};
 
-			var targets = new linux_target[]
+			var targets_regular = new linux_target[]
 			{
 				new linux_target("x64"),
 				new linux_target("x86"),
+			};
+
+			var targets_cross = new linux_target[]
+			{
 				new linux_target("musl-x64"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
@@ -1882,7 +1902,17 @@ public static class cb
 
 			write_linux_multi(
 				"e_sqlcipher",
-				targets,
+                "regular",
+				targets_regular,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+			write_linux_multi(
+				"e_sqlcipher",
+                "cross",
+				targets_cross,
 				cfiles,
 				defines,
 				includes,
