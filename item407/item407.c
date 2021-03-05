@@ -32,6 +32,8 @@ void show_err(sqlite3* db, const char* psz, int rc)
 
 int main()
 {
+    printf("%s\n", sqlite3_libversion());
+
     // see https://sqlite.org/threadsafe.html for more detail
     int flags = SQLITE_OPEN_CREATE |
         SQLITE_OPEN_READWRITE |
