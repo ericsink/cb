@@ -157,6 +157,10 @@ public static class cb
 					compiler = "mips64el-linux-gnuabi64-gcc";
 					break;
 
+				case "s390x":
+					compiler = "s390x-linux-gnu-gcc";
+					break;
+
 				case "armhf":
 					compiler = "arm-linux-gnueabihf-gcc";
 					break;
@@ -1210,6 +1214,7 @@ public static class cb
 				new linux_target("armhf"),
 				new linux_target("armsf"),
 				new linux_target("mips64"),
+				new linux_target("s390x"),
 			};
 
 			write_linux_multi(
@@ -1910,6 +1915,43 @@ public static class cb
 				includes,
 				libs
 				);
+			write_linux_multi(
+				"e_sqlcipher",
+                "cross",
+				targets_cross,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+		}
+
+		{
+			var defines = new Dictionary<string,string>
+			{
+				//{ "_WIN32", null }, // for tomcrypt
+				// { "ENDIAN_LITTLE", null }, // s390x is big-endian (auto-detected correctly)
+				{ "LTC_NO_PROTOTYPES", null },
+				{ "LTC_SOURCE", null },
+				{ "SQLITE_HAS_CODEC", null },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLCIPHER_CRYPTO_LIBTOMCRYPT", null },
+				{ "CIPHER", "\\\"AES-256-CBC\\\"" },
+			};
+			add_basic_sqlite3_defines(defines);
+			add_linux_sqlite3_defines(defines);
+
+			var libs = new string[]
+			{
+				//"advapi32.lib",
+				//"bcrypt.lib",
+			};
+
+			var targets_cross = new linux_target[]
+			{
+				new linux_target("s390x"),
+			};
+
 			write_linux_multi(
 				"e_sqlcipher",
                 "cross",
