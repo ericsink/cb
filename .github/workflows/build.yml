@@ -1,0 +1,137 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'bld/bin/**'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - 'bld/bin/**'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: "cb"
+    - uses: actions/checkout@v2
+      with:
+        repository: libtom/libtomcrypt
+        path: "libtomcrypt"
+        ref: "5a3a12c9b343e219a0a1cbc3c47e997e5a39ffa6"
+    - name: Setup cross compilers
+      if: startsWith(matrix.os, 'ubuntu')
+      run: ./cb/bld/setup_linux.sh
+    - name: Setup NDK
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r21e
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+    - name: Generate script
+      run: dotnet run
+      working-directory: cb/bld
+    - name: Update permissions
+      run: chmod +x *.sh 
+      working-directory: cb/bld
+    - name: Clean output directory
+      if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      run: rm -fr bin
+      working-directory: cb/bld
+    - name: Clean output directory
+      if: startsWith(matrix.os, 'windows')
+      run: rm bin -r -fo
+      working-directory: cb/bld
+    - name: Build (Linux)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        #!/bin/bash
+        set -e
+        for f in linux_*.sh; do
+          if [[ "$f" == *_cross.sh ]] || [[ "$f" == *_regular.sh ]]
+          then
+            continue
+          fi
+          bash "$f"
+        done
+      working-directory: cb/bld
+    - name: Build (Android)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        set -e
+        cd android_e_sqlite3
+        ndk-build
+        mkdir -p ../bin/e_sqlite3/android
+        cp -r libs/* ../bin/e_sqlite3/android
+        cd ../android_e_sqlcipher
+        ndk-build
+        mkdir -p ../bin/e_sqlcipher/android
+        cp -r libs/* ../bin/e_sqlcipher/android
+      working-directory: cb/bld
+    - name: Build (macOS, iOS, tvOS)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        set -e
+        for f in mac_*.sh ios_*.sh tvos_*.sh; do
+          bash "$f"
+        done
+      working-directory: cb/bld
+    - name: Build (Windows)
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        $files = Get-ChildItem *.bat -Exclude "win_e_sqlite3.bat","win_e_sqlcipher.bat"
+        foreach ($f in $files) {
+          cmd /C $f
+        }
+      working-directory: cb/bld
+    - uses: actions/upload-artifact@master
+      with:
+        name: bin-${{ matrix.os }}
+        path: cb/bld/bin
+
+  publish:
+    needs: build
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Clean output directory
+        run: |
+          rm -fr bin/e_sqlite3
+          rm -fr bin/e_sqlcipher
+        working-directory: bld
+      - uses: actions/download-artifact@master
+        with:
+          name: bin-ubuntu-latest
+          path: bld/bin
+      - uses: actions/download-artifact@master
+        with:
+          name: bin-macos-latest
+          path: bld/bin
+      - uses: actions/download-artifact@master
+        with:
+          name: bin-windows-latest
+          path: bld/bin
+      - name: Fix permissions
+        run: |
+          find ./bld/bin/e_sqlite3 -name *.so | xargs chmod 0775
+          find ./bld/bin/e_sqlite3 -name *.dylib | xargs chmod 0775
+          find ./bld/bin/e_sqlcipher -name *.so | xargs chmod 0775
+          find ./bld/bin/e_sqlcipher -name *.dylib | xargs chmod 0775
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "refs/heads/staging"
+          force: true
