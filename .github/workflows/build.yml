@@ -24,7 +24,7 @@ jobs:
       with:
         repository: libtom/libtomcrypt
         path: "libtomcrypt"
-        ref: "5a3a12c9b343e219a0a1cbc3c47e997e5a39ffa6"
+        ref: "v1.18.2"
     - name: Setup cross compilers
       if: startsWith(matrix.os, 'ubuntu')
       run: ./cb/bld/setup_linux.sh
