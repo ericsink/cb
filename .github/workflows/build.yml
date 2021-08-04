@@ -4,11 +4,11 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - 'bld/bin/**'
+    - 'bld/bin/**'
   pull_request:
     branches: [ master ]
     paths-ignore:
-      - 'bld/bin/**'
+    - 'bld/bin/**'
 
 jobs:
   build:
@@ -98,40 +98,98 @@ jobs:
         name: bin-${{ matrix.os }}
         path: cb/bld/bin
 
+  test:
+    needs: build
+    if: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: "cb"
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        repository: ericsink/SQLitePCL.raw
+        path: "SQLitePCL.raw"
+    - name: Clean output directory
+      if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      run: rm -fr bin
+      working-directory: cb/bld
+    - name: Clean output directory
+      if: startsWith(matrix.os, 'windows')
+      run: rm bin -r -fo
+      working-directory: cb/bld
+    - uses: actions/download-artifact@v2
+      with:
+        name: bin-ubuntu-latest
+        path: cb/bld/bin
+    - uses: actions/download-artifact@v2
+      with:
+        name: bin-macos-latest
+        path: cb/bld/bin
+    - uses: actions/download-artifact@v2
+      with:
+        name: bin-windows-latest
+        path: cb/bld/bin
+    - name: Setup .NET 5
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Setup .NET 3.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+    - name: Setup .NET 2.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.1.x
+    - name: Add msbuild to PATH
+      if: startsWith(matrix.os, 'windows')
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Install T4
+      run: dotnet tool install --global dotnet-t4
+    - name: Build
+      run: |
+        cd SQLitePCL.raw/build
+        dotnet run
+
   publish:
     needs: build
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Clean output directory
-        run: |
-          rm -fr bin/e_sqlite3
-          rm -fr bin/e_sqlcipher
-        working-directory: bld
-      - uses: actions/download-artifact@v2
-        with:
-          name: bin-ubuntu-latest
-          path: bld/bin
-      - uses: actions/download-artifact@v2
-        with:
-          name: bin-macos-latest
-          path: bld/bin
-      - uses: actions/download-artifact@v2
-        with:
-          name: bin-windows-latest
-          path: bld/bin
-      - name: Fix permissions
-        run: |
-          find ./bld/bin/e_sqlite3 -name *.so | xargs chmod 0775
-          find ./bld/bin/e_sqlite3 -name *.dylib | xargs chmod 0775
-          find ./bld/bin/e_sqlcipher -name *.so | xargs chmod 0775
-          find ./bld/bin/e_sqlcipher -name *.dylib | xargs chmod 0775
-      - name: Commit & Push changes
-        uses: actions-js/push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: "refs/heads/staging"
-          force: true
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Clean output directory
+      run: |
+        rm -fr bin/e_sqlite3
+        rm -fr bin/e_sqlcipher
+      working-directory: bld
+    - uses: actions/download-artifact@v2
+      with:
+        name: bin-ubuntu-latest
+        path: bld/bin
+    - uses: actions/download-artifact@v2
+      with:
+        name: bin-macos-latest
+        path: bld/bin
+    - uses: actions/download-artifact@v2
+      with:
+        name: bin-windows-latest
+        path: bld/bin
+    - name: Fix permissions
+      run: |
+        find ./bld/bin/e_sqlite3 -name *.so | xargs chmod 0775
+        find ./bld/bin/e_sqlite3 -name *.dylib | xargs chmod 0775
+        find ./bld/bin/e_sqlcipher -name *.so | xargs chmod 0775
+        find ./bld/bin/e_sqlcipher -name *.dylib | xargs chmod 0775
+    - name: Commit & Push changes
+      uses: actions-js/push@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: "refs/heads/staging"
+        force: true
