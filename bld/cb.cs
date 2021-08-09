@@ -491,7 +491,7 @@ public static class cb
 		};
 		var arches_device = new string[] {
 			"arm64",
-			"armv7",
+			//"armv7",
 			//"armv7s",
 		};
 		var arches = arches_simulator.Concat(arches_device).ToArray();
@@ -563,10 +563,10 @@ public static class cb
 			tw.Write($"libtool -static -o {path_static} -filelist {dest_filelist}\n");
 
 			tw.Write("mkdir -p \"./bin/{0}/tvos/device\"\n", libname);
-			tw.Write($"xcrun --sdk iphoneos clang {string.Join(" ", arches_device.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/device/lib{libname}.dylib {path_static}\n");
+			tw.Write($"xcrun --sdk appletvos clang {string.Join(" ", arches_device.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/device/lib{libname}.dylib {path_static}\n");
 
 			tw.Write("mkdir -p \"./bin/{0}/tvos/simulator\"\n", libname);
-			tw.Write($"xcrun --sdk iphonesimulator clang {string.Join(" ", arches_simulator.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/simulator/lib{libname}.dylib {path_static}\n");
+			tw.Write($"xcrun --sdk appletvsimulator clang {string.Join(" ", arches_simulator.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/simulator/lib{libname}.dylib {path_static}\n");
 		}
 	}
 
@@ -1775,7 +1775,7 @@ public static class cb
 			var defines = new Dictionary<string,string>
 			{
 				{ "_WIN32", null }, // for tomcrypt
-				{ "ENDIAN_LITTLE", null }, // for tomcrypt arm
+				{ "ENDIAN_LITTLE", "" }, // for tomcrypt arm
 				{ "LTC_NO_PROTOTYPES", null },
 				{ "LTC_SOURCE", null },
 				{ "SQLITE_HAS_CODEC", null },
@@ -1869,7 +1869,7 @@ public static class cb
 			var defines = new Dictionary<string,string>
 			{
 				//{ "_WIN32", null }, // for tomcrypt
-				{ "ENDIAN_LITTLE", null }, // for tomcrypt arm
+				{ "ENDIAN_LITTLE", "" }, // for tomcrypt arm
 				{ "LTC_NO_PROTOTYPES", null },
 				{ "LTC_SOURCE", null },
 				{ "SQLITE_HAS_CODEC", null },
@@ -1925,7 +1925,7 @@ public static class cb
 			var defines = new Dictionary<string,string>
 			{
 				//{ "_WIN32", null }, // for tomcrypt
-				{ "ENDIAN_LITTLE", null }, // for tomcrypt arm
+				{ "ENDIAN_LITTLE", "" }, // for tomcrypt arm
 				{ "LTC_NO_PROTOTYPES", null },
 				{ "LTC_SOURCE", null },
 				{ "SQLITE_HAS_CODEC", null },
@@ -1977,7 +1977,7 @@ public static class cb
 			var defines = new Dictionary<string,string>
 			{
 				//{ "_WIN32", null }, // for tomcrypt
-				{ "ENDIAN_LITTLE", null }, // for tomcrypt arm
+				{ "ENDIAN_LITTLE", "" }, // for tomcrypt arm
 				{ "LTC_NO_PROTOTYPES", null },
 				{ "LTC_SOURCE", null },
 				{ "SQLITE_HAS_CODEC", null },

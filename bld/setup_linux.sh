@@ -1,4 +1,10 @@
-#1/bin/sh
+#!/bin/sh
+
+sudo dpkg --add-architecture i386
+sudo apt-get update
+sudo apt-get install linux-libc-dev:i386
+sudo apt-get install gcc-multilib
+
 sudo apt-get install gcc-arm-linux-gnueabi
 sudo apt-get install gcc-arm-linux-gnueabihf
 sudo apt-get install musl-dev musl-tools
