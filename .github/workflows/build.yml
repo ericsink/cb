@@ -14,7 +14,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-16.04, macos-latest, windows-latest]
+        os: [ubuntu-18.04, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
@@ -124,7 +124,7 @@ jobs:
       working-directory: cb/bld
     - uses: actions/download-artifact@v2
       with:
-        name: bin-ubuntu-16.04
+        name: bin-ubuntu-18.04
         path: cb/bld/bin
     - uses: actions/download-artifact@v2
       with:
@@ -159,7 +159,7 @@ jobs:
   publish:
     needs: build
     if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
       with:
@@ -171,7 +171,7 @@ jobs:
       working-directory: bld
     - uses: actions/download-artifact@v2
       with:
-        name: bin-ubuntu-16.04
+        name: bin-ubuntu-18.04
         path: bld/bin
     - uses: actions/download-artifact@v2
       with:
