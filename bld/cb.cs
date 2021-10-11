@@ -174,6 +174,10 @@ public static class cb
 					tw.Write(" -m64\n");
 					break;
 
+				case "musl-armhf":
+					compiler = "arm-linux-musleabihf-cc";
+					break;
+
 				default:
 					throw new NotImplementedException();
 			}
@@ -1210,6 +1214,7 @@ public static class cb
 			var targets_cross = new linux_target[]
 			{
 				new linux_target("musl-x64"),
+				new linux_target("musl-armhf"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
 				new linux_target("armsf"),
@@ -1900,6 +1905,7 @@ public static class cb
 			var targets_cross = new linux_target[]
 			{
 				new linux_target("musl-x64"),
+				new linux_target("musl-armhf"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
 				new linux_target("armsf"),
