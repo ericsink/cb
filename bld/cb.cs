@@ -381,6 +381,7 @@ public static class cb
 				tw.Write(" --sdk macosx");
 				tw.Write(" clang");
 				tw.Write(" -dynamiclib");
+				tw.Write(" -install_name @rpath/lib{0}.dylib", libname);
 				tw.Write(" -O");
 				tw.Write(" -arch {0}", arch);
 				foreach (var d in defines.Keys.OrderBy(q => q))
