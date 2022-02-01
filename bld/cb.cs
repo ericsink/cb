@@ -355,6 +355,58 @@ public static class cb
         }
     }
 
+    static void write_wasm(
+        string libname,
+        IList<string> cfiles,
+        Dictionary<string, string> defines,
+        IList<string> includes,
+        IList<string> libs)
+    {
+        var dest_filelist = string.Format("wasm_{0}.libtoolfiles", libname);
+        using (TextWriter tw = new StreamWriter(dest_filelist))
+        {
+            var subdir = string.Format("{0}/wasm", libname);
+            foreach (var s in cfiles)
+            {
+                var b = Path.GetFileNameWithoutExtension(s);
+                var o = string.Format("./obj/{0}/{1}.o", subdir, b);
+                tw.Write("{0}\n", o);
+            }
+        }
+        using (TextWriter tw = new StreamWriter(string.Format("wasm_{0}.sh", libname)))
+        {
+            tw.Write("#!/bin/sh\n");
+            tw.Write("set -e\n");
+            tw.Write("set -x\n");
+            var subdir = string.Format("{0}/wasm", libname);
+            tw.Write("mkdir -p \"./obj/{0}\"\n", subdir);
+            foreach (var s in cfiles)
+            {
+                tw.Write("emcc");
+                tw.Write(" -Oz");
+                foreach (var d in defines.Keys.OrderBy(q => q))
+                {
+                    var v = defines[d];
+                    tw.Write(" -D{0}", d);
+                    if (v != null)
+                    {
+                        tw.Write("={0}", v);
+                    }
+                }
+                foreach (var p in includes)
+                {
+                    tw.Write(" -I{0}", p);
+                }
+                tw.Write(" -c");
+                var b = Path.GetFileNameWithoutExtension(s);
+                tw.Write(" -o ./obj/{0}/{1}.o", subdir, b);
+                tw.Write(" {0}\n", s);
+            }
+            tw.Write("mkdir -p \"./bin/{0}\"\n", subdir);
+            tw.Write("emar rcs ./bin/{0}/wasm/{0}.a @wasm_{0}.libtoolfiles\n", libname);
+        }
+    }
+
     static void write_mac_dynamic(
         string libname,
         IList<string> cfiles,
@@ -1093,6 +1145,11 @@ public static class cb
         defines["SQLITE_OS_UNIX"] = null;
     }
 
+    static void add_wasm_sqlite3_defines(Dictionary<string, string> defines)
+    {
+        defines["SQLITE_OS_UNIX"] = null;
+    }
+
     static void add_ios_sqlite3_defines(Dictionary<string,string> defines)
     {
         defines["SQLITE_OS_UNIX"] = null;
@@ -1278,6 +1335,25 @@ public static class cb
 				);
 #endif
 		}
+
+        {
+            var defines = new Dictionary<string, string>();
+            add_basic_sqlite3_defines(defines);
+            add_wasm_sqlite3_defines(defines);
+            var includes = new string[]
+            {
+            };
+            var libs = new string[]
+            {
+            };
+
+            write_wasm(
+                "e_sqlite3",
+                cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+                defines,
+                includes.Select(x => x.Replace("\\", "/")).ToArray(),
+                libs);
+        }
 
 		{
 			var defines = new Dictionary<string,string>();
@@ -2014,6 +2090,35 @@ public static class cb
 				);
 #endif
 		}
+
+        {
+            var defines = new Dictionary<string, string>
+            {
+                //{ "_WIN32", null }, // for tomcrypt
+                { "ENDIAN_LITTLE", "" }, // for tomcrypt arm
+                { "LTC_NO_PROTOTYPES", null },
+                { "LTC_SOURCE", null },
+                { "SQLITE_HAS_CODEC", null },
+                { "SQLITE_TEMP_STORE", "2" },
+                { "SQLCIPHER_CRYPTO_LIBTOMCRYPT", null },
+                { "CIPHER", "\\\"AES-256-CBC\\\"" },
+            };
+            add_basic_sqlite3_defines(defines);
+            add_wasm_sqlite3_defines(defines);
+
+            var libs = new string[]
+            {
+                //"advapi32.lib",
+                //"bcrypt.lib",
+            };
+
+            write_wasm(
+               "e_sqlcipher",
+               cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+               defines,
+               includes.Select(x => x.Replace("\\", "/")).ToArray(),
+               libs);
+        }
 
 		{
 			var defines = new Dictionary<string,string>
