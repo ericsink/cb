@@ -6,6 +6,7 @@ rm ./win_*.bat
 rm ./*.buildoutput.txt
 rm ./linux_*.sh
 #rm ./android_*.sh
+rm ./wasm_*.sh
 rm ./ios_*.sh
 rm ./tvos_*.sh
 rm ./mac_*.sh

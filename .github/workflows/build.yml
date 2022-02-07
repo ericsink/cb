@@ -33,6 +33,11 @@ jobs:
       uses: nttld/setup-ndk@v1
       with:
         ndk-version: r21e
+    - name: Setup Emscripten
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: mymindstorm/setup-emsdk@v11
+      with:
+        version: 2.0.23 # NB: Matches .NET 6
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
@@ -76,6 +81,15 @@ jobs:
         ndk-build
         mkdir -p ../bin/e_sqlcipher/android
         cp -r libs/* ../bin/e_sqlcipher/android
+      working-directory: cb/bld
+    - name: Build (Wasm)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        #!/bin/bash
+        set -e
+        for f in wasm_*.sh; do
+          bash "$f"
+        done
       working-directory: cb/bld
     - name: Build (macOS, iOS, tvOS)
       if: startsWith(matrix.os, 'macos')
