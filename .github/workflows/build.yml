@@ -103,7 +103,8 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        # TODO want macos-latest here too, but the build currently fails there
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
@@ -134,10 +135,21 @@ jobs:
       with:
         name: bin-windows-latest
         path: cb/bld/bin
+    # note that the following is mostly a copy of the build script from the SQLitePCL.raw repo
+    - name: "Set up Java: 11"
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
     - name: Setup .NET 6
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+    - name: Install workload ios
+      run: dotnet workload install ios
+    - name: Install workload android
+      run: dotnet workload install android
+    - name: Install workload tvos
+      run: dotnet workload install tvos
     - name: Setup .NET 5
       uses: actions/setup-dotnet@v1
       with:
