@@ -178,6 +178,10 @@ public static class cb
 					compiler = "arm-linux-musleabihf-cc";
 					break;
 
+				case "musl-arm64":
+					compiler = "aarch64-linux-musl-cc";
+					break;
+
 				default:
 					throw new NotImplementedException();
 			}
@@ -1271,6 +1275,7 @@ public static class cb
 			var targets_cross = new linux_target[]
 			{
 				new linux_target("musl-x64"),
+				new linux_target("musl-arm64"),
 				new linux_target("musl-armhf"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
@@ -1981,6 +1986,7 @@ public static class cb
 			var targets_cross = new linux_target[]
 			{
 				new linux_target("musl-x64"),
+				new linux_target("musl-arm64"),
 				new linux_target("musl-armhf"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
