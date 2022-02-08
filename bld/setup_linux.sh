@@ -11,3 +11,9 @@ sudo apt-get install musl-dev musl-tools
 sudo apt-get install gcc-aarch64-linux-gnu
 sudo apt-get install gcc-mips64el-linux-gnuabi64
 sudo apt-get install gcc-s390x-linux-gnu
+
+mkdir crosscompilers
+cd crosscompilers
+wget -q https://musl.cc/arm-linux-musleabihf-cross.tgz
+tar --strip-components=1 -zxf ./arm-linux-musleabihf-cross.tgz
+cd ..
