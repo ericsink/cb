@@ -96,7 +96,7 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       run: |
         set -e
-        for f in mac_*.sh ios_*.sh tvos_*.sh; do
+        for f in mac_*.sh maccatalyst_*.sh ios_*.sh tvos_*.sh; do
           bash "$f"
         done
       working-directory: cb/bld

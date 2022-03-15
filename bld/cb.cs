@@ -415,6 +415,62 @@ public static class cb
         }
     }
 
+    static void write_maccatalyst_dynamic(
+        string libname,
+        IList<string> cfiles,
+        Dictionary<string,string> defines,
+        IList<string> includes,
+        IList<string> libs
+        )
+	{
+        var dest_sh = string.Format("maccatalyst_dynamic_{0}.sh", libname);
+		var arches = new string[] {
+			"x86_64",
+			"arm64"
+		};
+		StringBuilder archLibraries = new StringBuilder();
+		using (TextWriter tw = new StreamWriter(dest_sh))
+        {
+			tw.Write("#!/bin/sh\n");
+			tw.Write("set -e\n");
+			tw.Write("set -x\n");
+			foreach (string arch in arches)
+			{
+				tw.Write("mkdir -p \"./bin/{0}/maccatalyst/{1}\"\n", libname, arch);
+				tw.Write("xcrun");
+				tw.Write(" --sdk macosx");
+				tw.Write(" clang");
+				tw.Write(" -dynamiclib");
+				tw.Write(" -O");
+                                tw.Write(" -target x86_64-apple-ios-macabi");
+				tw.Write(" -arch {0}", arch);
+				foreach (var d in defines.Keys.OrderBy(q => q))
+				{
+					var v = defines[d];
+					tw.Write(" -D{0}", d);
+					if (v != null)
+					{
+						tw.Write("={0}", v);
+					}
+				}
+				foreach (var p in includes)
+				{
+					tw.Write(" -I{0}", p);
+				}
+				tw.Write(" -o ./bin/{0}/maccatalyst/{1}/lib{0}.dylib", libname, arch);
+				foreach (var s in cfiles)
+				{
+					tw.Write(" {0}", s);
+				}
+				tw.Write(" -lc");
+				tw.Write(" \n");
+				archLibraries.AppendFormat("./bin/{0}/maccatalyst/{1}/lib{0}.dylib ", libname, arch);
+			}
+			// Create a universal binary from each of the architectures
+			tw.Write("lipo {1} -create -output ./bin/{0}/maccatalyst/lib{0}.dylib\n", libname, archLibraries);
+		}
+	}
+
     static void write_mac_dynamic(
         string libname,
         IList<string> cfiles,
@@ -1400,6 +1456,14 @@ public static class cb
 				libs
 				);
 
+			write_maccatalyst_dynamic(
+				"e_sqlite3",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
 			write_mac_static(
 				"e_sqlite3",
 				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
@@ -2162,6 +2226,14 @@ public static class cb
 				);
 
 			write_mac_dynamic(
+				"e_sqlcipher",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_maccatalyst_dynamic(
 				"e_sqlcipher",
 				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,

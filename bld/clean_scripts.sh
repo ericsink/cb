@@ -10,6 +10,7 @@ rm ./wasm_*.sh
 rm ./ios_*.sh
 rm ./tvos_*.sh
 rm ./mac_*.sh
+rm ./maccatalyst_*.sh
 #rm -rf ./obj
 #rm -rf ./bin
 rm -rf ./android_sqlcipher
