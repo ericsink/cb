@@ -14,7 +14,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        os: [ubuntu-18.04, macos-latest, windows-2019]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
@@ -119,7 +119,7 @@ jobs:
     strategy:
       matrix:
         # TODO want macos-latest here too, but the build currently fails there
-        os: [windows-latest]
+        os: [windows-2019]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
@@ -148,7 +148,7 @@ jobs:
         path: cb/bld/bin
     - uses: actions/download-artifact@v2
       with:
-        name: bin-windows-latest
+        name: bin-windows-2019
         path: cb/bld/bin
     # note that the following is mostly a copy of the build script from the SQLitePCL.raw repo
     - name: "Set up Java: 11"
@@ -203,7 +203,7 @@ jobs:
         path: bld/bin
     - uses: actions/download-artifact@v2
       with:
-        name: bin-windows-latest
+        name: bin-windows-2019
         path: bld/bin
     - name: Fix permissions
       run: |
