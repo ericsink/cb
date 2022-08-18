@@ -14,8 +14,8 @@ sudo apt-get install gcc-s390x-linux-gnu
 
 mkdir crosscompilers
 cd crosscompilers
-wget -q https://musl.cc/arm-linux-musleabihf-cross.tgz
+wget https://musl.cc/arm-linux-musleabihf-cross.tgz
 tar --strip-components=1 -zxf ./arm-linux-musleabihf-cross.tgz
-wget -q https://musl.cc/aarch64-linux-musl-cross.tgz
+wget https://musl.cc/aarch64-linux-musl-cross.tgz
 tar --strip-components=1 -zxf aarch64-linux-musl-cross.tgz
 cd ..
