@@ -411,8 +411,8 @@ public static class cb
                 tw.Write(" -o ./obj/{0}/{1}.o", subdir, b);
                 tw.Write(" {0}\n", s);
             }
-            tw.Write("mkdir -p \"./bin/{0}\"\n", subdir);
-            tw.Write("emar rcs ./bin/{0}/wasm/{0}.a @wasm_{0}.libtoolfiles\n", libname);
+            tw.Write("mkdir -p \"./bin/{0}/$1\"\n", subdir);
+            tw.Write("emar rcs ./bin/{0}/$1/{1}.a @wasm_{1}.libtoolfiles\n", subdir, libname);
         }
     }
 
