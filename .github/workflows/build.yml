@@ -249,11 +249,11 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: bin-wasm-net6.0
-        path: cb/bld/bin
+        path: bld/bin
     - uses: actions/download-artifact@v2
       with:
         name: bin-wasm-net7.0
-        path: cb/bld/bin
+        path: bld/bin
     - name: Fix permissions
       run: |
         find ./bld/bin/e_sqlite3 -name *.so | xargs chmod 0775
