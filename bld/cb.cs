@@ -161,6 +161,10 @@ public static class cb
 					compiler = "s390x-linux-gnu-gcc";
 					break;
 
+				case "ppc64le":
+					compiler = "powerpc64le-linux-gnu-gcc";
+					break;
+
 				case "armhf":
 					compiler = "arm-linux-gnueabihf-gcc";
 					break;
@@ -1339,6 +1343,7 @@ public static class cb
 				new linux_target("armsf"),
 				new linux_target("mips64"),
 				new linux_target("s390x"),
+				new linux_target("ppc64le"),
 			};
 
 			write_linux_multi(
@@ -2103,6 +2108,7 @@ public static class cb
 			var targets_cross = new linux_target[]
 			{
 				new linux_target("s390x"),
+				new linux_target("ppc64le"),
 			};
 
 			write_linux_multi(
