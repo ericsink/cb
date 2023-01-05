@@ -15,10 +15,10 @@ sudo apt-get install gcc-powerpc64le-linux-gnu
 
 mkdir crosscompilers
 cd crosscompilers
-#wget https://musl.cc/arm-linux-musleabihf-cross.tgz
-wget https://ericsink.com/arm-linux-musleabihf-cross.tgz
+wget https://musl.cc/arm-linux-musleabihf-cross.tgz
+#wget https://ericsink.com/arm-linux-musleabihf-cross.tgz
 tar --strip-components=1 -zxf ./arm-linux-musleabihf-cross.tgz
-#wget https://musl.cc/aarch64-linux-musl-cross.tgz
-wget https://ericsink.com/aarch64-linux-musl-cross.tgz
+wget https://musl.cc/aarch64-linux-musl-cross.tgz
+#wget https://ericsink.com/aarch64-linux-musl-cross.tgz
 tar --strip-components=1 -zxf aarch64-linux-musl-cross.tgz
 cd ..
