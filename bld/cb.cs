@@ -695,97 +695,101 @@ public static class cb
 		}
 	}
 
-    static void write_ios(
-        string libname,
-        IList<string> cfiles,
-        Dictionary<string,string> defines,
-        IList<string> includes,
-        IList<string> libs
-        )
+	static void write_ios_arches(
+		string libname,
+		IList<string> cfiles,
+		Dictionary<string,string> defines,
+		IList<string> includes,
+		IList<string> libs,
+		TextWriter tw,
+		bool simulator,
+		string[] arches
+		)
 	{
-        var dest_sh = string.Format("ios_{0}.sh", libname);
+		var subfolder_name = simulator ? "simulator" : "device";
+		var dest_filelist = $"ios_{subfolder_name}_{libname}.libtoolfiles";
+		using (TextWriter tw_filelist = new StreamWriter(dest_filelist))
+		{
+			foreach (var arch in arches)
+			{
+				var subdir = $"{libname}/ios/{subfolder_name}/{arch}";
+				foreach (var s in cfiles)
+				{
+					var b = Path.GetFileNameWithoutExtension(s);
+					var o = $"./obj/{subdir}/{b}.o";
+					tw_filelist.Write($"{o}\n");
+				}
+			}
+		}
+
+		tw.Write($"mkdir -p \"./bin/{libname}/ios/{subfolder_name}\"\n");
+		foreach (var arch in arches)
+		{
+			var subdir = $"{libname}/ios/{subfolder_name}/{arch}";
+			tw.Write("mkdir -p \"./obj/{0}\"\n", subdir);
+			foreach (var s in cfiles)
+			{
+				tw.Write("xcrun");
+				tw.Write(simulator ? " --sdk iphonesimulator" : " --sdk iphoneos");
+				tw.Write(" clang");
+				tw.Write(" -O");
+				if (simulator)
+					tw.Write(" -mios-simulator-version-min=6.0");
+				else
+					tw.Write(" -miphoneos-version-min=6.0");
+				tw.Write(" -arch {0}", arch);
+				foreach (var d in defines.Keys.OrderBy(q => q))
+				{
+					var v = defines[d];
+					tw.Write(" -D{0}", d);
+					if (v != null)
+					{
+						tw.Write("={0}", v);
+					}
+				}
+				foreach (var p in includes)
+				{
+					tw.Write(" -I{0}", p);
+				}
+				tw.Write(" -c");
+				var b = Path.GetFileNameWithoutExtension(s);
+				tw.Write(" -o ./obj/{0}/{1}.o", subdir, b);
+				tw.Write(" {0}\n", s);
+			}
+		}
+		var path_static = $"./bin/{libname}/ios/{subfolder_name}/{libname}.a";
+
+		tw.Write($"mkdir -p \"./bin/{libname}/ios/{subfolder_name}\"\n");
+		tw.Write($"libtool -static -o {path_static} -filelist {dest_filelist}\n");
+		tw.Write($"xcrun --sdk {(simulator ? "iphonesimulator" : "iphoneos")} clang {string.Join(" ", arches.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/ios/{subfolder_name}/lib{libname}.dylib {path_static}\n");
+	}
+
+	static void write_ios(
+		string libname,
+		IList<string> cfiles,
+		Dictionary<string,string> defines,
+		IList<string> includes,
+		IList<string> libs
+		)
+	{
+		var dest_sh = string.Format("ios_{0}.sh", libname);
 		var arches_simulator = new string[] {
 			"i386",
 			"x86_64",
+			"arm64",
 		};
 		var arches_device = new string[] {
 			"arm64",
 			"armv7",
 			"armv7s",
 		};
-		var arches = arches_simulator.Concat(arches_device).ToArray();
-		var dest_filelist = string.Format("ios_{0}.libtoolfiles", libname);
-		using (TextWriter tw = new StreamWriter(dest_filelist))
-		{
-			foreach (var arch in arches)
-			{
-				var subdir = string.Format("{0}/ios/{1}", libname, arch);
-				foreach (var s in cfiles)
-				{
-                var b = Path.GetFileNameWithoutExtension(s);
-					var o = string.Format("./obj/{0}/{1}.o", subdir, b);
-					tw.Write("{0}\n", o);
-				}
-			}
-		}
 		using (TextWriter tw = new StreamWriter(dest_sh))
 		{
 			tw.Write("#!/bin/sh\n");
 			tw.Write("set -e\n");
 			tw.Write("set -x\n");
-		    tw.Write("mkdir -p \"./bin/{0}/ios\"\n", libname);
-			foreach (var arch in arches)
-			{
-				var subdir = string.Format("{0}/ios/{1}", libname, arch);
-				tw.Write("mkdir -p \"./obj/{0}\"\n", subdir);
-				    foreach (var s in cfiles)
-				{
-					tw.Write("xcrun");
-					switch (arch)
-					{
-						case "i386":
-						case "x86_64":
-							tw.Write(" --sdk iphonesimulator");
-							break;
-						case "arm64":
-						case "armv7":
-						case "armv7s":
-							tw.Write(" --sdk iphoneos");
-							break;
-						default:
-							throw new NotImplementedException();
-					}
-					tw.Write(" clang");
-					tw.Write(" -O");
-					tw.Write(" -miphoneos-version-min=6.0");
-					tw.Write(" -arch {0}", arch);
-					foreach (var d in defines.Keys.OrderBy(q => q))
-					{
-						var v = defines[d];
-						tw.Write(" -D{0}", d);
-						if (v != null)
-						{
-							tw.Write("={0}", v);
-						}
-					}
-					foreach (var p in includes)
-					{
-						tw.Write(" -I{0}", p);
-					}
-					tw.Write(" -c");
-                var b = Path.GetFileNameWithoutExtension(s);
-					tw.Write(" -o ./obj/{0}/{1}.o", subdir, b);
-					tw.Write(" {0}\n", s);
-				}
-			}
-			var path_static = $"./bin/{libname}/ios/{libname}.a";
-			tw.Write($"libtool -static -o {path_static} -filelist {dest_filelist}\n");
-
-			tw.Write("mkdir -p \"./bin/{0}/ios/device\"\n", libname);
-			tw.Write($"xcrun --sdk iphoneos clang {string.Join(" ", arches_device.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/ios/device/lib{libname}.dylib {path_static}\n");
-
-			tw.Write("mkdir -p \"./bin/{0}/ios/simulator\"\n", libname);
-			tw.Write($"xcrun --sdk iphonesimulator clang {string.Join(" ", arches_simulator.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/ios/simulator/lib{libname}.dylib {path_static}\n");
+			write_ios_arches(libname, cfiles, defines, includes, libs, tw, true, arches_simulator);
+			write_ios_arches(libname, cfiles, defines, includes, libs, tw, false, arches_device);
 		}
 	}
 
