@@ -14,7 +14,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest, windows-2019]
+        os: [ubuntu-20.04, macos-latest, windows-2019]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
@@ -106,7 +106,7 @@ jobs:
           # Don't forget to add a download-artifact steps in test and publish
         - '{ "tfm": "net6.0", "emsdk": "2.0.23" }' # eol: 2024-11-12
         - '{ "tfm": "net7.0", "emsdk": "3.1.12" }' # eol: 2023-05-08
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
       with:
@@ -173,7 +173,7 @@ jobs:
       working-directory: cb/bld
     - uses: actions/download-artifact@v2
       with:
-        name: bin-ubuntu-18.04
+        name: bin-ubuntu-20.04
         path: cb/bld/bin
     - uses: actions/download-artifact@v2
       with:
@@ -224,7 +224,7 @@ jobs:
   publish:
     needs: [ build, build-wasm ]
     if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
       with:
@@ -236,7 +236,7 @@ jobs:
       working-directory: bld
     - uses: actions/download-artifact@v2
       with:
-        name: bin-ubuntu-18.04
+        name: bin-ubuntu-20.04
         path: bld/bin
     - uses: actions/download-artifact@v2
       with:
