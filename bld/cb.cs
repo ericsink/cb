@@ -261,7 +261,7 @@ public static class cb
 		tw.Write("LOCAL_MODULE := lib{0}\n", libname);
 		tw.Write("LOCAL_MODULE_FILENAME := lib{0}\n", libname);
 		tw.Write("LOCAL_CFLAGS := -O {0}\n", string.Join(" ", defs));
-        tw.Write("LOCAL_LDLIBS := -llog -lm\n");
+        tw.Write("LOCAL_LDLIBS := -llog\n");
 		if (includes.Count > 0)
 		{
 			tw.Write("LOCAL_C_INCLUDES := {0}\n", string.Join(" ", inc));
@@ -1386,7 +1386,7 @@ public static class cb
 			var targets = new android_target[]
 			{
 				//new android_target("armeabi"),
-				new android_target("armeabi-v7a"),
+				//new android_target("armeabi-v7a"),
 				new android_target("arm64-v8a"),
 				new android_target("x86"),
 				new android_target("x86_64"),
@@ -2152,7 +2152,7 @@ public static class cb
 			var targets = new android_target[]
 			{
 				//new android_target("armeabi"),
-				new android_target("armeabi-v7a"),
+				//new android_target("armeabi-v7a"),
 				new android_target("arm64-v8a"),
 				new android_target("x86"),
 				new android_target("x86_64"),
