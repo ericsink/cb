@@ -280,7 +280,7 @@ public static class cb
 	var dest_project_properties = Path.Combine(dest_dir, "project.properties");
 	using (TextWriter tw = new StreamWriter(dest_project_properties))
 	{
-		tw.Write("target=android-14\n");
+		tw.Write("target=android-21\n");
 	}
     }
 
@@ -1196,7 +1196,7 @@ public static class cb
         defines["SQLITE_ENABLE_FTS4"] = null;
         defines["SQLITE_ENABLE_FTS5"] = null;
         defines["SQLITE_ENABLE_JSON1"] = null;
-        //defines["SQLITE_ENABLE_MATH_FUNCTIONS"] = null;
+        defines["SQLITE_ENABLE_MATH_FUNCTIONS"] = null;
         defines["SQLITE_ENABLE_RTREE"] = null;
         defines["SQLITE_ENABLE_SNAPSHOT"] = null;
         defines["SQLITE_DEFAULT_FOREIGN_KEYS"] = "1";
