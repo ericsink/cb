@@ -448,7 +448,7 @@ public static class cb
 				tw.Write(" -dynamiclib");
 				tw.Write(" -O");
                                 tw.Write(" -target x86_64-apple-ios-macabi");
-                tw.Write("-mmacosx-version-min=10.14");
+                tw.Write(" -mmacosx-version-min=10.14");
 				tw.Write(" -arch {0}", arch);
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
@@ -504,7 +504,7 @@ public static class cb
 				tw.Write(" clang");
 				tw.Write(" -dynamiclib");
 				tw.Write(" -O");
-                tw.Write("-mmacosx-version-min=10.14");
+                tw.Write(" -mmacosx-version-min=10.14");
 				tw.Write(" -arch {0}", arch);
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
@@ -575,8 +575,8 @@ public static class cb
 					tw.Write("xcrun");
 					tw.Write(" --sdk macosx");
 					tw.Write(" clang");
-                    tw.Write("-mmacosx-version-min=10.14");
 					tw.Write(" -O");
+                    tw.Write(" -mmacosx-version-min=10.14");
 					tw.Write(" -arch {0}", arch);
 					foreach (var d in defines.Keys.OrderBy(q => q))
 					{
