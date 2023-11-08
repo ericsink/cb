@@ -142,11 +142,15 @@ public static class cb
 				case "x64":
 					compiler = "gcc";
 					tw.Write(" -m64\n");
+					tw.Write(" -msse4.2\n");
+					tw.Write(" -maes\n");
 					break;
 
 				case "x86":
 					compiler = "gcc";
 					tw.Write(" -m32\n");
+					tw.Write(" -msse4.2\n");
+					tw.Write(" -maes\n");
 					break;
 
 				case "arm64":
@@ -176,6 +180,8 @@ public static class cb
 				case "musl-x64":
 					compiler = "musl-gcc";
 					tw.Write(" -m64\n");
+					tw.Write(" -msse4.2\n");
+					tw.Write(" -maes\n");
 					break;
 
 				case "musl-armhf":
@@ -261,6 +267,8 @@ public static class cb
 		tw.Write("LOCAL_MODULE := lib{0}\n", libname);
 		tw.Write("LOCAL_MODULE_FILENAME := lib{0}\n", libname);
 		tw.Write("LOCAL_CFLAGS := -O {0}\n", string.Join(" ", defs));
+		tw.Write("ifeq ($(TARGET_ARCH_ABI),x86)\nLOCAL_CFLAGS += -maes -msse4.2\nendif\n");
+		tw.Write("ifeq ($(TARGET_ARCH_ABI),x86_64)\nLOCAL_CFLAGS += -maes -msse4.2\nendif\n");
         tw.Write("LOCAL_LDLIBS := -llog\n");
 		if (includes.Count > 0)
 		{
@@ -447,9 +455,15 @@ public static class cb
 				tw.Write(" clang");
 				tw.Write(" -dynamiclib");
 				tw.Write(" -O");
-                                tw.Write(" -target x86_64-apple-ios-macabi");
+                tw.Write(" -target x86_64-apple-ios-macabi");
                 tw.Write(" -mmacosx-version-min=10.14");
 				tw.Write(" -arch {0}", arch);
+				if (arch == "x86_64" )
+				{
+					tw.Write(" -msse4.2");
+					tw.Write(" -maes");
+				}
+				tw.Write(" -framework Security");
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
 					var v = defines[d];
@@ -506,6 +520,12 @@ public static class cb
 				tw.Write(" -O");
                 tw.Write(" -mmacosx-version-min=10.14");
 				tw.Write(" -arch {0}", arch);
+				if (arch == "x86_64" )
+				{
+					tw.Write(" -msse4.2");
+					tw.Write(" -maes");
+				}
+				tw.Write(" -framework Security");
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
 					var v = defines[d];
@@ -578,6 +598,12 @@ public static class cb
 					tw.Write(" -O");
                     tw.Write(" -mmacosx-version-min=10.14");
 					tw.Write(" -arch {0}", arch);
+					if (arch == "x86_64" )
+					{
+						tw.Write(" -msse4.2");
+						tw.Write(" -maes");
+					}
+					tw.Write(" -framework Security");
 					foreach (var d in defines.Keys.OrderBy(q => q))
 					{
 						var v = defines[d];
@@ -667,6 +693,12 @@ public static class cb
 					tw.Write(" clang");
 					tw.Write(" -O");
 					tw.Write(" -arch {0}", arch);
+					if (arch == "i386" || arch == "x86_64" )
+					{
+						tw.Write(" -msse4.2");
+						tw.Write(" -maes");
+					}
+					tw.Write(" -framework Security");
 					tw.Write(" -fembed-bitcode");
 					foreach (var d in defines.Keys.OrderBy(q => q))
 					{
@@ -691,10 +723,10 @@ public static class cb
 			tw.Write($"libtool -static -o {path_static} -filelist {dest_filelist}\n");
 
 			tw.Write("mkdir -p \"./bin/{0}/tvos/device\"\n", libname);
-			tw.Write($"xcrun --sdk appletvos clang {string.Join(" ", arches_device.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/device/lib{libname}.dylib {path_static}\n");
+			tw.Write($"xcrun --sdk appletvos clang {string.Join(" ", arches_device.Select(s => $"-arch {s}"))} -framework Security -shared -all_load -o ./bin/{libname}/tvos/device/lib{libname}.dylib {path_static}\n");
 
 			tw.Write("mkdir -p \"./bin/{0}/tvos/simulator\"\n", libname);
-			tw.Write($"xcrun --sdk appletvsimulator clang {string.Join(" ", arches_simulator.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/tvos/simulator/lib{libname}.dylib {path_static}\n");
+			tw.Write($"xcrun --sdk appletvsimulator clang {string.Join(" ", arches_simulator.Select(s => $"-arch {s}"))} -framework Security -shared -all_load -o ./bin/{libname}/tvos/simulator/lib{libname}.dylib {path_static}\n");
 		}
 	}
 
@@ -741,6 +773,12 @@ public static class cb
 				else
 					tw.Write(" -miphoneos-version-min=6.0");
 				tw.Write(" -arch {0}", arch);
+				if (arch == "i386" || arch == "x86_64" )
+				{
+					tw.Write(" -msse4.2");
+					tw.Write(" -maes");
+				}
+				tw.Write(" -framework Security");
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
 					var v = defines[d];
@@ -764,7 +802,7 @@ public static class cb
 
 		tw.Write($"mkdir -p \"./bin/{libname}/ios/{subfolder_name}\"\n");
 		tw.Write($"libtool -static -o {path_static} -filelist {dest_filelist}\n");
-		tw.Write($"xcrun --sdk {(simulator ? "iphonesimulator" : "iphoneos")} clang {string.Join(" ", arches.Select(s => $"-arch {s}"))} -shared -all_load -o ./bin/{libname}/ios/{subfolder_name}/lib{libname}.dylib {path_static}\n");
+		tw.Write($"xcrun --sdk {(simulator ? "iphonesimulator" : "iphoneos")} clang {string.Join(" ", arches.Select(s => $"-arch {s}"))} -framework Security -shared -all_load -o ./bin/{libname}/ios/{subfolder_name}/lib{libname}.dylib {path_static}\n");
 	}
 
 	static void write_ios(
@@ -1480,6 +1518,327 @@ public static class cb
 
 			write_mac_static(
 				"e_sqlite3",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+		}
+
+    }
+
+    static void write_e_sqlite3mc()
+    {
+        var cfiles = new string[]
+        {
+            "..\\sqlite3mc\\sqlite3.c",
+        };
+
+		{
+			var trios = new win_target[]
+			{
+#if not
+				new win_target(VCVersion.v110, Flavor.wp80, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.wp80, Machine.arm),
+
+				new win_target(VCVersion.v120, Flavor.wp81, Machine.x86),
+				new win_target(VCVersion.v120, Flavor.wp81, Machine.arm),
+
+				new win_target(VCVersion.v110, Flavor.xp, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.xp, Machine.x64),
+				new win_target(VCVersion.v110, Flavor.xp, Machine.arm),
+
+				new win_target(VCVersion.v110, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v110, Flavor.plain, Machine.arm),
+
+				new win_target(VCVersion.v110, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v110, Flavor.appcontainer, Machine.arm),
+
+#if not
+				new win_target(VCVersion.v120, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v120, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v120, Flavor.plain, Machine.arm),
+#endif
+
+				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.arm),
+
+				new win_target(VCVersion.v140, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v140, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v140, Flavor.plain, Machine.arm),
+
+				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.arm),
+#endif
+
+#if not
+				new win_target(VCVersion.v141, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v141, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v141, Flavor.plain, Machine.arm),
+				new win_target(VCVersion.v141, Flavor.plain, Machine.arm64),
+
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm),
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm64),
+#endif
+
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm64),
+
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm64),
+			};
+
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+
+			add_basic_sqlite3_defines(defines);
+			add_win_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+			write_win_multi(
+				"e_sqlite3mc",
+				trios,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+		}
+
+		{
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+			add_basic_sqlite3_defines(defines);
+			add_linux_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+
+			var targets_regular = new linux_target[]
+			{
+				new linux_target("x64"),
+				new linux_target("x86"),
+			};
+
+			var targets_cross = new linux_target[]
+			{
+				new linux_target("musl-x64"),
+				new linux_target("musl-arm64"),
+				new linux_target("musl-armhf"),
+				new linux_target("arm64"),
+				new linux_target("armhf"),
+				new linux_target("armsf"),
+				new linux_target("mips64"),
+				new linux_target("s390x"),
+				new linux_target("ppc64le"),
+			};
+
+			write_linux_multi(
+				"e_sqlite3mc",
+                "regular",
+				targets_regular,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+
+			write_linux_multi(
+				"e_sqlite3mc",
+                "cross",
+				targets_cross,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+		}
+
+		{
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+			add_basic_sqlite3_defines(defines);
+			add_android_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+
+			var targets = new android_target[]
+			{
+				//new android_target("armeabi"),
+				new android_target("armeabi-v7a"),
+				new android_target("arm64-v8a"),
+				new android_target("x86"),
+				new android_target("x86_64"),
+			};
+
+#if true
+			write_android_ndk_build(
+				"e_sqlite3mc",
+				targets,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+#else
+			write_android_multi(
+				"e_sqlite3mc",
+				targets,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+#endif
+		}
+
+        {
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+            add_basic_sqlite3_defines(defines);
+            add_wasm_sqlite3_defines(defines);
+            var includes = new string[]
+            {
+            };
+            var libs = new string[]
+            {
+            };
+
+            write_wasm(
+                "e_sqlite3mc",
+                cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+                defines,
+                includes.Select(x => x.Replace("\\", "/")).ToArray(),
+                libs);
+        }
+
+		{
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+			add_basic_sqlite3_defines(defines);
+			add_ios_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+
+			write_ios(
+				"e_sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_tvos(
+				"e_sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_mac_dynamic(
+				"e_sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_maccatalyst_dynamic(
+				"e_sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_mac_static(
+				"e_sqlite3mc",
 				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
 				defines,
 				includes.Select(x => x.Replace("\\", "/")).ToArray(),
@@ -2314,11 +2673,334 @@ public static class cb
 			);
 	}
 
+    static void write_sqlite3mc()
+    {
+        var cfiles = new string[]
+        {
+            "..\\sqlite3mc\\sqlite3.c",
+        };
+
+		{
+			var trios = new win_target[]
+			{
+#if not
+				new win_target(VCVersion.v110, Flavor.wp80, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.wp80, Machine.arm),
+
+				new win_target(VCVersion.v120, Flavor.wp81, Machine.x86),
+				new win_target(VCVersion.v120, Flavor.wp81, Machine.arm),
+
+				new win_target(VCVersion.v110, Flavor.xp, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.xp, Machine.x64),
+				new win_target(VCVersion.v110, Flavor.xp, Machine.arm),
+
+				new win_target(VCVersion.v110, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v110, Flavor.plain, Machine.arm),
+
+				new win_target(VCVersion.v110, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v110, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v110, Flavor.appcontainer, Machine.arm),
+
+#if not
+				new win_target(VCVersion.v120, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v120, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v120, Flavor.plain, Machine.arm),
+#endif
+
+				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v120, Flavor.appcontainer, Machine.arm),
+
+				new win_target(VCVersion.v140, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v140, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v140, Flavor.plain, Machine.arm),
+
+				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v140, Flavor.appcontainer, Machine.arm),
+#endif
+
+#if not
+				new win_target(VCVersion.v141, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v141, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v141, Flavor.plain, Machine.arm),
+				new win_target(VCVersion.v141, Flavor.plain, Machine.arm64),
+
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm),
+				new win_target(VCVersion.v141, Flavor.appcontainer, Machine.arm64),
+#endif
+
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.plain, Machine.arm64),
+
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x86),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.x64),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm),
+				new win_target(VCVersion.v142, Flavor.appcontainer, Machine.arm64),
+			};
+
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+
+			add_basic_sqlite3_defines(defines);
+			add_win_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+			write_win_multi(
+				"sqlite3mc",
+				trios,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+		}
+
+		{
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+			add_basic_sqlite3_defines(defines);
+			add_linux_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+
+			var targets_regular = new linux_target[]
+			{
+				new linux_target("x64"),
+				new linux_target("x86"),
+			};
+
+			var targets_cross = new linux_target[]
+			{
+				new linux_target("musl-x64"),
+				new linux_target("musl-arm64"),
+				new linux_target("musl-armhf"),
+				new linux_target("arm64"),
+				new linux_target("armhf"),
+				new linux_target("armsf"),
+				new linux_target("mips64"),
+				new linux_target("s390x"),
+				new linux_target("ppc64le"),
+			};
+
+			write_linux_multi(
+				"sqlite3mc",
+                "regular",
+				targets_regular,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+
+			write_linux_multi(
+				"sqlite3mc",
+                "cross",
+				targets_cross,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+		}
+
+		{
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+			add_basic_sqlite3_defines(defines);
+			add_android_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+
+			var targets = new android_target[]
+			{
+				//new android_target("armeabi"),
+				new android_target("armeabi-v7a"),
+				new android_target("arm64-v8a"),
+				new android_target("x86"),
+				new android_target("x86_64"),
+			};
+
+#if true
+			write_android_ndk_build(
+				"sqlite3mc",
+				targets,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+#else
+			write_android_multi(
+				"sqlite3mc",
+				targets,
+				cfiles,
+				defines,
+				includes,
+				libs
+				);
+#endif
+		}
+
+        {
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+            add_basic_sqlite3_defines(defines);
+            add_wasm_sqlite3_defines(defines);
+            var includes = new string[]
+            {
+            };
+            var libs = new string[]
+            {
+            };
+
+            write_wasm(
+                "sqlite3mc",
+                cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+                defines,
+                includes.Select(x => x.Replace("\\", "/")).ToArray(),
+                libs);
+        }
+
+		{
+			var defines = new Dictionary<string,string>
+			{
+				{ "CODEC_TYPE", "CODEC_TYPE_CHACHA20" },
+				{ "SQLITE_TEMP_STORE", "2" },
+				{ "SQLITE_USE_URI", "1" },
+				{ "SQLITE_DQS", "0" },
+				{ "SQLITE_SECURE_DELETE", "1" },
+				{ "SQLITE_ENABLE_EXTFUNC", "1" },
+//				{ "SQLITE_ENABLE_GEOPOLY", "1" },
+//				{ "SQLITE_ENABLE_REGEXP", "1" },
+//				{ "SQLITE_ENABLE_SERIES", "1" },
+//				{ "SQLITE_ENABLE_SHA3", "1" },
+//				{ "SQLITE_ENABLE_UUID", "1" },
+			};
+			add_basic_sqlite3_defines(defines);
+			add_ios_sqlite3_defines(defines);
+			var includes = new string[]
+			{
+			};
+			var libs = new string[]
+			{
+			};
+
+			write_ios(
+				"sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_tvos(
+				"sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_mac_dynamic(
+				"sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_maccatalyst_dynamic(
+				"sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+
+			write_mac_static(
+				"sqlite3mc",
+				cfiles.Select(x => x.Replace("\\", "/")).ToArray(),
+				defines,
+				includes.Select(x => x.Replace("\\", "/")).ToArray(),
+				libs
+				);
+		}
+
+    }
+
     public static void Main()
     {
         write_e_sqlite3();
+        write_e_sqlite3mc();
         write_e_sqlcipher();
         //write_sqlcipher_apple_cc();
+        write_sqlite3mc();
     }
 }
 
