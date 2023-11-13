@@ -192,6 +192,10 @@ public static class cb
 					compiler = "aarch64-linux-musl-cc";
 					break;
 
+				case "musl-s390x":
+					compiler = "s390x-linux-musl-cc";
+					break;
+
 				default:
 					throw new NotImplementedException();
 			}
@@ -1384,6 +1388,7 @@ public static class cb
 				new linux_target("musl-x64"),
 				new linux_target("musl-arm64"),
 				new linux_target("musl-armhf"),
+				new linux_target("musl-s390x"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
 				new linux_target("armsf"),
@@ -2474,6 +2479,7 @@ public static class cb
 
 			var targets_cross = new linux_target[]
 			{
+				new linux_target("musl-s390x"),
 				new linux_target("s390x"),
 				new linux_target("ppc64le"),
 			};

@@ -21,4 +21,6 @@ tar --strip-components=1 -zxf ./arm-linux-musleabihf-cross.tgz
 wget https://musl.cc/aarch64-linux-musl-cross.tgz
 #wget https://ericsink.com/aarch64-linux-musl-cross.tgz
 tar --strip-components=1 -zxf aarch64-linux-musl-cross.tgz
+wget https://musl.cc/s390x-linux-musl-cross.tgz
+tar --strip-components=1 -zxf s390x-linux-musl-cross.tgz
 cd ..
