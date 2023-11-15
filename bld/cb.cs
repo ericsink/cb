@@ -1671,6 +1671,7 @@ public static class cb
 				new linux_target("musl-x64"),
 				new linux_target("musl-arm64"),
 				new linux_target("musl-armhf"),
+				new linux_target("musl-s390x"),
 				new linux_target("arm64"),
 				new linux_target("armhf"),
 				new linux_target("armsf"),
