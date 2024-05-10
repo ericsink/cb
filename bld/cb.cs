@@ -5,7 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-public static class cb
+public static class CB
 {
     enum VCVersion
     {
