@@ -14,7 +14,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-2019]
+        os: [ubuntu-20.04, macos-13, windows-2019]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -161,7 +161,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        # TODO want macos-latest here too, but the build currently fails there
+        # TODO want macos-whatever here too, but the build currently fails there
         os: [windows-2019]
     runs-on: ${{ matrix.os }}
     steps:
@@ -187,7 +187,7 @@ jobs:
         path: cb/bld/bin
     - uses: actions/download-artifact@v4
       with:
-        name: bin-macos-latest
+        name: bin-macos-13
         path: cb/bld/bin
     - uses: actions/download-artifact@v4
       with:
@@ -255,7 +255,7 @@ jobs:
         path: bld/bin
     - uses: actions/download-artifact@v4
       with:
-        name: bin-macos-latest
+        name: bin-macos-13
         path: bld/bin
     - uses: actions/download-artifact@v4
       with:
