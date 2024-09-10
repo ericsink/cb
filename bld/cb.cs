@@ -281,6 +281,7 @@ public static class CB
 		tw.Write("LOCAL_CFLAGS := -O {0}\n", string.Join(" ", defs));
 		tw.Write("ifeq ($(TARGET_ARCH_ABI),x86)\nLOCAL_CFLAGS += -maes -msse4.2\nendif\n");
 		tw.Write("ifeq ($(TARGET_ARCH_ABI),x86_64)\nLOCAL_CFLAGS += -maes -msse4.2\nendif\n");
+        tw.Write("LOCAL_LDFLAGS += \"-Wl,-z,max-page-size=16384\"\n");
         tw.Write("LOCAL_LDLIBS := -llog\n");
 		if (includes.Count > 0)
 		{
