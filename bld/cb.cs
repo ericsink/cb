@@ -181,6 +181,10 @@ public static class CB
 					compiler = "riscv64-linux-gnu-gcc";
 					break;
 
+                case "loongarch64":
+                    compiler = "loongarch64-unknown-linux-gnu-gcc";
+                    break;
+
 				case "musl-x64":
 					compiler = "musl-gcc";
 					tw.Write(" -m64\n");
@@ -1406,6 +1410,7 @@ public static class CB
 				new linux_target("s390x"),
 				new linux_target("ppc64le"),
 				new linux_target("riscv64"),
+                new linux_target("loongarch64"),
 			};
 
 			write_linux_multi(
@@ -1691,6 +1696,7 @@ public static class CB
 				new linux_target("s390x"),
 				new linux_target("ppc64le"),
 				new linux_target("riscv64"),
+                new linux_target("loongarch64"),
 			};
 
 			write_linux_multi(
@@ -2498,6 +2504,7 @@ public static class CB
 				new linux_target("s390x"),
 				new linux_target("ppc64le"),
 				new linux_target("riscv64"),
+                new linux_target("loongarch64"),
 			};
 
 			write_linux_multi(
@@ -2842,6 +2849,7 @@ public static class CB
 				new linux_target("s390x"),
 				new linux_target("ppc64le"),
 				new linux_target("riscv64"),
+                new linux_target("loongarch64"),
 			};
 
 			write_linux_multi(
