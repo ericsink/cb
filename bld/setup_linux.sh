@@ -27,5 +27,5 @@ tar --strip-components=1 -zxf s390x-linux-musl-cross.tgz
 wget https://musl.cc/riscv64-linux-musl-cross.tgz
 tar --strip-components=1 -zxf riscv64-linux-musl-cross.tgz
 wget https://github.com/loongson/build-tools/releases/download/2024.11.01/x86_64-cross-tools-loongarch64-binutils_2.43.1-gcc_14.2.0-glibc_2.40.tar.xz
-tar --strip-components=1 -zxf x86_64-cross-tools-loongarch64-binutils_2.43.1-gcc_14.2.0-glibc_2.40.tar.xz
+tar --strip-components=1 -xf x86_64-cross-tools-loongarch64-binutils_2.43.1-gcc_14.2.0-glibc_2.40.tar.xz
 cd ..
