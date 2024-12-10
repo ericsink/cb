@@ -181,9 +181,9 @@ public static class CB
 					compiler = "riscv64-linux-gnu-gcc";
 					break;
 
-                case "loongarch64":
-                    compiler = "loongarch64-unknown-linux-gnu-gcc";
-                    break;
+				case "loongarch64":
+					compiler = "loongarch64-unknown-linux-gnu-gcc";
+					break;
 
 				case "musl-x64":
 					compiler = "musl-gcc";
