@@ -11,10 +11,10 @@ on:
     - 'bld/bin/**'
 
 jobs:
-  build:
+  build-win-mac:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-13, windows-2019]
+        os: [macos-13, windows-2019]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -25,14 +25,6 @@ jobs:
         repository: libtom/libtomcrypt
         path: "libtomcrypt"
         ref: "v1.18.2"
-    - name: Setup cross compilers
-      if: startsWith(matrix.os, 'ubuntu')
-      run: ./cb/bld/setup_linux.sh
-    - name: Setup NDK
-      if: startsWith(matrix.os, 'ubuntu')
-      uses: nttld/setup-ndk@v1
-      with:
-        ndk-version: r21e
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -44,47 +36,12 @@ jobs:
       run: chmod +x *.sh 
       working-directory: cb/bld
     - name: Clean output directory
-      if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
+      if: startsWith(matrix.os, 'macos')
       run: rm -fr bin
       working-directory: cb/bld
     - name: Clean output directory
       if: startsWith(matrix.os, 'windows')
       run: rm bin -r -fo
-      working-directory: cb/bld
-    - name: Build (Linux)
-      if: startsWith(matrix.os, 'ubuntu')
-      run: |
-        #!/bin/bash
-        export PATH="$PWD/../../crosscompilers/bin:$PATH"
-        set -e
-        for f in linux_*.sh; do
-          if [[ "$f" == *_cross.sh ]] || [[ "$f" == *_regular.sh ]]
-          then
-            continue
-          fi
-          bash "$f"
-        done
-      working-directory: cb/bld
-    - name: Build (Android)
-      if: startsWith(matrix.os, 'ubuntu')
-      run: |
-        set -e
-        cd android_e_sqlite3
-        ndk-build
-        mkdir -p ../bin/e_sqlite3/android
-        cp -r libs/* ../bin/e_sqlite3/android
-        cd ../android_e_sqlite3mc
-        ndk-build
-        mkdir -p ../bin/e_sqlite3mc/android
-        cp -r libs/* ../bin/e_sqlite3mc/android
-        cd ../android_e_sqlcipher
-        ndk-build
-        mkdir -p ../bin/e_sqlcipher/android
-        cp -r libs/* ../bin/e_sqlcipher/android
-        cd ../android_sqlite3mc
-        ndk-build
-        mkdir -p ../bin/sqlite3mc/android
-        cp -r libs/* ../bin/sqlite3mc/android
       working-directory: cb/bld
     - name: Build (macOS, iOS, tvOS)
       if: startsWith(matrix.os, 'macos')
@@ -107,6 +64,73 @@ jobs:
         name: bin-${{ matrix.os }}
         path: cb/bld/bin
 
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: "cb"
+    - uses: actions/checkout@v4
+      with:
+        repository: libtom/libtomcrypt
+        path: "libtomcrypt"
+        ref: "v1.18.2"
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        install: true
+    - name: Setup NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r21e
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0
+    - name: Generate script
+      run: dotnet run
+      working-directory: cb/bld
+    - name: Update permissions
+      run: chmod +x *.sh 
+      working-directory: cb/bld
+    - name: Clean output directory
+      run: rm -fr bin
+      working-directory: cb/bld
+    - name: Build (Linux)
+      run: >
+        mv ./cb/.dockerignore . &&
+        docker buildx build
+        --output=type=local,dest=.
+        --cache-to type=gha
+        --cache-from type=gha
+        --build-arg TOOLCHAIN_RELEASE_BASE_URL=https://github.com/${{ github.repository }}/releases/download/crosscompilers
+        -f ./cb/Dockerfile
+        .
+    - name: Build (Android)
+      run: |
+        set -e
+        cd android_e_sqlite3
+        ndk-build
+        mkdir -p ../bin/e_sqlite3/android
+        cp -r libs/* ../bin/e_sqlite3/android
+        cd ../android_e_sqlite3mc
+        ndk-build
+        mkdir -p ../bin/e_sqlite3mc/android
+        cp -r libs/* ../bin/e_sqlite3mc/android
+        cd ../android_e_sqlcipher
+        ndk-build
+        mkdir -p ../bin/e_sqlcipher/android
+        cp -r libs/* ../bin/e_sqlcipher/android
+        cd ../android_sqlite3mc
+        ndk-build
+        mkdir -p ../bin/sqlite3mc/android
+        cp -r libs/* ../bin/sqlite3mc/android
+      working-directory: cb/bld
+    - uses: actions/upload-artifact@v4
+      with:
+        name: bin-linux
+        path: cb/bld/bin
+
   build-wasm:
     strategy:
       matrix:
@@ -116,7 +140,7 @@ jobs:
         - '{ "tfm": "net7.0", "emsdk": "3.1.12" }' # eol: 2024-05-14
         - '{ "tfm": "net8.0", "emsdk": "3.1.34" }' # eol: 2026-11-14
         - '{ "tfm": "net9.0", "emsdk": "3.1.56" }' # eol: 2026-05-12
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
@@ -157,7 +181,7 @@ jobs:
         path: cb/bld/bin
 
   test:
-    needs: [ build, build-wasm]
+    needs: [ build-linux, build-win-mac, build-wasm]
     if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
@@ -183,7 +207,7 @@ jobs:
       working-directory: cb/bld
     - uses: actions/download-artifact@v4
       with:
-        name: bin-ubuntu-20.04
+        name: bin-linux
         path: cb/bld/bin
     - uses: actions/download-artifact@v4
       with:
@@ -235,9 +259,9 @@ jobs:
         dotnet run
 
   publish:
-    needs: [ build, build-wasm ]
+    needs: [ build-linux, build-win-mac, build-wasm ]
     if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
@@ -251,7 +275,7 @@ jobs:
       working-directory: bld
     - uses: actions/download-artifact@v4
       with:
-        name: bin-ubuntu-20.04
+        name: bin-linux
         path: bld/bin
     - uses: actions/download-artifact@v4
       with:

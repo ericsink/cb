@@ -166,7 +166,7 @@ public static class CB
 					break;
 
 				case "ppc64le":
-					compiler = "powerpc64le-linux-gnu-gcc";
+					compiler = "powerpc64le-linux-gcc";
 					break;
 
 				case "armhf":
