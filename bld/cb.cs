@@ -142,15 +142,11 @@ public static class CB
 				case "x64":
 					compiler = "gcc";
 					tw.Write(" -m64\n");
-					tw.Write(" -msse4.2\n");
-					tw.Write(" -maes\n");
 					break;
 
 				case "x86":
 					compiler = "gcc";
 					tw.Write(" -m32\n");
-					tw.Write(" -msse4.2\n");
-					tw.Write(" -maes\n");
 					break;
 
 				case "arm64":
@@ -184,8 +180,6 @@ public static class CB
 				case "musl-x64":
 					compiler = "musl-gcc";
 					tw.Write(" -m64\n");
-					tw.Write(" -msse4.2\n");
-					tw.Write(" -maes\n");
 					break;
 
 				case "musl-armhf":
@@ -279,8 +273,6 @@ public static class CB
 		tw.Write("LOCAL_MODULE := lib{0}\n", libname);
 		tw.Write("LOCAL_MODULE_FILENAME := lib{0}\n", libname);
 		tw.Write("LOCAL_CFLAGS := -O {0}\n", string.Join(" ", defs));
-		tw.Write("ifeq ($(TARGET_ARCH_ABI),x86)\nLOCAL_CFLAGS += -maes -msse4.2\nendif\n");
-		tw.Write("ifeq ($(TARGET_ARCH_ABI),x86_64)\nLOCAL_CFLAGS += -maes -msse4.2\nendif\n");
         tw.Write("LOCAL_LDFLAGS += \"-Wl,-z,max-page-size=16384\"\n");
         tw.Write("LOCAL_LDLIBS := -llog\n");
 		if (includes.Count > 0)
@@ -471,11 +463,6 @@ public static class CB
                 tw.Write(" -target x86_64-apple-ios-macabi");
                 tw.Write(" -mmacosx-version-min=10.14");
 				tw.Write(" -arch {0}", arch);
-				if (arch == "x86_64" )
-				{
-					tw.Write(" -msse4.2");
-					tw.Write(" -maes");
-				}
 				tw.Write(" -framework Security");
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
@@ -533,11 +520,6 @@ public static class CB
 				tw.Write(" -O");
                 tw.Write(" -mmacosx-version-min=10.14");
 				tw.Write(" -arch {0}", arch);
-				if (arch == "x86_64" )
-				{
-					tw.Write(" -msse4.2");
-					tw.Write(" -maes");
-				}
 				tw.Write(" -framework Security");
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
@@ -611,11 +593,6 @@ public static class CB
 					tw.Write(" -O");
                     tw.Write(" -mmacosx-version-min=10.14");
 					tw.Write(" -arch {0}", arch);
-					if (arch == "x86_64" )
-					{
-						tw.Write(" -msse4.2");
-						tw.Write(" -maes");
-					}
 					tw.Write(" -framework Security");
 					foreach (var d in defines.Keys.OrderBy(q => q))
 					{
@@ -706,11 +683,6 @@ public static class CB
 					tw.Write(" clang");
 					tw.Write(" -O");
 					tw.Write(" -arch {0}", arch);
-					if (arch == "i386" || arch == "x86_64" )
-					{
-						tw.Write(" -msse4.2");
-						tw.Write(" -maes");
-					}
 					tw.Write(" -framework Security");
 					tw.Write(" -fembed-bitcode");
 					foreach (var d in defines.Keys.OrderBy(q => q))
@@ -786,11 +758,6 @@ public static class CB
 				else
 					tw.Write(" -miphoneos-version-min=6.0");
 				tw.Write(" -arch {0}", arch);
-				if (arch == "i386" || arch == "x86_64" )
-				{
-					tw.Write(" -msse4.2");
-					tw.Write(" -maes");
-				}
 				tw.Write(" -framework Security");
 				foreach (var d in defines.Keys.OrderBy(q => q))
 				{
